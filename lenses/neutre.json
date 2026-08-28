@@ -1,0 +1,43 @@
+{
+  "id": "neutre",
+  "name": "Neutre",
+  "tagline": "Sans métaphore. Le métier suffit.",
+
+  "levels": {
+    "1": {
+      "term": "Prompt",
+      "analogy": "Formuler une intention que le modèle peut exécuter sans deviner : l'objectif, les contraintes, le format attendu, et de quoi savoir que c'est fini.",
+      "pitfall": "Lancer sans critère d'acceptation, puis réparer au deuxième message."
+    },
+    "2": {
+      "term": "Contexte",
+      "analogy": "Traiter la fenêtre comme une ressource rare : charger le juste nécessaire, compacter avant d'être compacté, isoler ce qui est jetable.",
+      "pitfall": "Attendre la saturation au lieu de choisir ce qu'on garde."
+    },
+    "3": {
+      "term": "Harnais",
+      "analogy": "Équiper l'agent plutôt que le corriger : skills, sous-agents, serveurs MCP, hooks, et surtout une vérification automatique.",
+      "pitfall": "Refaire à la main ce qu'un outil ferait mieux, et relire au lieu de tester."
+    },
+    "4": {
+      "term": "Boucle",
+      "analogy": "Décomposer, paralléliser ce qui est indépendant, et fermer la boucle sur un critère vérifiable plutôt que sur un « stop » humain.",
+      "pitfall": "Reprendre la main à chaque étape, ce qui coûte le temps qu'on croyait gagner."
+    },
+    "5": {
+      "term": "Graphe",
+      "analogy": "Orchestrer des agents spécialisés qui se passent le relais, et qui rejouent autrement — pas à l'identique — quand un nœud échoue.",
+      "pitfall": "Multiplier les agents génériques et confondre relance et correction."
+    }
+  },
+
+  "signals": {},
+  "challenges": {
+    "has_acceptance_criteria": "Trois tâches d'affilée lancées avec un critère d'acceptation explicite.",
+    "compaction_mode": "Deux compactions pilotées avant saturation, avec consignes de ce qu'il faut garder.",
+    "verification_present": "Chaque tâche de la semaine se termine par une vérification automatique, pas une relecture.",
+    "loop_closure": "Fermer trois boucles sur un test vert plutôt que sur votre propre « stop ».",
+    "self_correction": "Un nœud qui échoue est rejoué avec une stratégie différente, jamais à l'identique."
+  },
+  "moments": {}
+}

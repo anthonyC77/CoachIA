@@ -1,0 +1,1033 @@
+<title>Deux formes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F3F6F7; --surface:#FFFFFF; --sunk:#E7ECEE; --raised:#FFFFFF;
+  --ink:#111819; --ink-2:#47565A; --ink-3:#77868B;
+  --line:#D2DADC; --line-strong:#B4C0C3;
+  --p1:#10B195; --p2:#0097B2; --p3:#1172BD; --p4:#5648AA; --p5:#6D1C79;
+  --accent:#C24A16;
+  --ok:#2E7150; --warn:#8A5A0E; --crit:#A93727;
+  --node-ink:#FFFFFF;
+  --shadow:0 6px 24px rgba(17,24,25,.10), 0 1px 2px rgba(17,24,25,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1113; --surface:#141A1D; --sunk:#090D0F; --raised:#1B2327;
+    --ink:#E5ECEE; --ink-2:#A6B4B9; --ink-3:#78868B;
+    --line:#222D31; --line-strong:#35444A;
+    --p1:#3EA692; --p2:#48B2C6; --p3:#82B5EF; --p4:#B3B2FB; --p5:#DDAFEC;
+    --accent:#F0793E;
+    --ok:#4CA277; --warn:#C08F35; --crit:#DB6A5B;
+    --node-ink:#0C1113;
+    --shadow:0 6px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1113; --surface:#141A1D; --sunk:#090D0F; --raised:#1B2327;
+  --ink:#E5ECEE; --ink-2:#A6B4B9; --ink-3:#78868B;
+  --line:#222D31; --line-strong:#35444A;
+  --p1:#3EA692; --p2:#48B2C6; --p3:#82B5EF; --p4:#B3B2FB; --p5:#DDAFEC;
+  --accent:#F0793E;
+  --ok:#4CA277; --warn:#C08F35; --crit:#DB6A5B;
+  --node-ink:#0C1113;
+  --shadow:0 6px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+.mono,.k,.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:"Bricolage Grotesque","Segoe UI",sans-serif;margin:0;font-weight:700;text-wrap:balance}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+/* ---------- shell ---------- */
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.bar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);
+  flex:0 0 auto;
+}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand h1{font-size:15px;letter-spacing:-.01em}
+.brand .sub{font-size:11px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--sunk)}
+.seg button{padding:5px 12px;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--raised);color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--line)}
+
+.search{position:relative}
+.search input{
+  font:inherit;font-size:13px;width:190px;padding:6px 10px 6px 28px;
+  background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:5px;
+}
+.search input::placeholder{color:var(--ink-3)}
+.search svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+
+.ghost{padding:5px 11px;font-size:12.5px;border:1px solid var(--line);border-radius:5px;color:var(--ink-2)}
+.ghost:hover{border-color:var(--line-strong);color:var(--ink)}
+.ghost[aria-pressed="true"]{background:var(--sunk);color:var(--ink)}
+
+.body{display:flex;flex:1 1 auto;min-height:0}
+
+/* ---------- rail ---------- */
+.rail{
+  flex:0 0 234px;border-right:1px solid var(--line);background:var(--surface);
+  overflow-y:auto;padding:16px 14px 24px;display:flex;flex-direction:column;gap:22px;
+}
+.block{display:flex;flex-direction:column;gap:9px}
+.k{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+
+.hero{display:flex;align-items:baseline;gap:7px}
+.hero .big{font-family:"Bricolage Grotesque",sans-serif;font-size:30px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.hero .unit{font-size:12px;color:var(--ink-3)}
+
+.stack{display:flex;height:12px;border-radius:2px;overflow:hidden;gap:2px;background:var(--surface)}
+.stack span{display:block}
+.dist{display:flex;flex-direction:column;gap:5px}
+.dist button{
+  display:grid;grid-template-columns:14px 1fr auto;align-items:center;gap:9px;
+  padding:4px 6px;border-radius:4px;text-align:left;width:100%;
+}
+.dist button:hover{background:var(--sunk)}
+.dist button[aria-pressed="false"]{opacity:.42}
+.dist .chip{width:14px;height:14px;border-radius:3px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:9px;font-weight:600;color:var(--node-ink)}
+.dist .name{font-size:12.5px}
+.dist .n{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.toggles button{
+  display:flex;align-items:center;gap:6px;padding:4px 9px;font-size:12px;
+  border:1px solid var(--line);border-radius:20px;color:var(--ink-2);
+}
+.toggles button[aria-pressed="true"]{background:var(--sunk);color:var(--ink);border-color:var(--line-strong)}
+.toggles button[aria-pressed="false"]{opacity:.5}
+.glyph{width:10px;height:10px;flex:0 0 auto;color:var(--ink-3)}
+
+.note{font-size:11.5px;color:var(--ink-3);line-height:1.45}
+.legend{display:flex;flex-direction:column;gap:7px}
+.legend div{display:grid;grid-template-columns:24px 1fr;align-items:center;gap:9px}
+.legend .g{display:grid;place-items:center}
+.legend .t{font-size:11.5px;color:var(--ink-2);line-height:1.3}
+.legend .t b{color:var(--ink);font-weight:600}
+
+/* ---------- stage ---------- */
+.stage{position:relative;flex:1 1 auto;min-width:0;background:var(--paper)}
+#canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#canvas.dragging{cursor:grabbing}
+.stagehint{
+  position:absolute;left:14px;bottom:12px;font-size:11px;color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;pointer-events:none;
+  background:color-mix(in srgb, var(--paper) 82%, transparent);padding:3px 7px;border-radius:4px;
+}
+.lanes{position:absolute;inset:0;pointer-events:none}
+
+/* ---------- inspector ---------- */
+.inspector{
+  flex:0 0 306px;border-left:1px solid var(--line);background:var(--surface);
+  overflow-y:auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:18px;
+}
+.inspector[hidden]{display:none}
+.insphead{display:flex;align-items:flex-start;gap:10px}
+.insphead h2{font-size:16px;line-height:1.3;letter-spacing:-.01em;flex:1}
+.close{font-size:18px;line-height:1;color:var(--ink-3);padding:2px 6px;border-radius:4px}
+.close:hover{background:var(--sunk);color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;
+  font-size:11px;font-family:"IBM Plex Mono",monospace;border:1px solid currentColor}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.crit{color:var(--crit)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
+.fact .k{margin-bottom:2px}
+.fact .v{font-family:"IBM Plex Mono",monospace;font-size:14px}
+.bars{display:flex;flex-direction:column;gap:6px}
+.barrow{display:grid;grid-template-columns:14px 1fr 34px;align-items:center;gap:9px}
+.bartrack{display:block;height:7px;background:var(--sunk);border-radius:2px;overflow:hidden}
+.barfill{display:block;height:100%;border-radius:2px}
+.barval{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);text-align:right}
+.touched{display:flex;flex-wrap:wrap;gap:5px}
+.touched span{font-family:"IBM Plex Mono",monospace;font-size:11px;padding:2px 7px;
+  border:1px solid var(--line);border-radius:3px;color:var(--ink-2)}
+.advice{border-left:2px solid var(--accent);padding-left:12px;font-size:12.5px;color:var(--ink-2)}
+.advice strong{color:var(--ink)}
+
+/* ---------- table view ---------- */
+.listpane{flex:0 0 auto;max-height:38vh;overflow:auto;border-top:1px solid var(--line);background:var(--surface)}
+.listpane[hidden]{display:none}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:760px}
+th{position:sticky;top:0;background:var(--sunk);text-align:left;padding:8px 12px;
+  font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--line)}
+td{padding:7px 12px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+tr:hover td{background:var(--sunk)}
+td.t{color:var(--ink)}
+td.m{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.lvlbadge{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:3px;
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;color:var(--node-ink)}
+
+@media (max-width: 980px){
+  body{overflow:auto}
+  .app{height:auto}
+  .body{flex-direction:column}
+  .rail{flex:0 0 auto;border-right:0;border-bottom:1px solid var(--line)}
+  .stage{height:60vh;flex:0 0 auto}
+  .inspector{flex:0 0 auto;border-left:0;border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <h1>Deux formes</h1>
+      <span class="sub">proposition A &middot; rond = fichier, carré = capacité</span>
+    </div>
+
+    <div class="seg" role="group" aria-label="Disposition">
+      <button id="mode-graph" aria-pressed="true">Graphe</button>
+      <button id="mode-levels" aria-pressed="false">Par palier</button>
+    </div>
+
+    <div class="search">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 L14 14"/>
+      </svg>
+      <input id="q" type="search" placeholder="Chercher une tâche, un fichier…" aria-label="Chercher">
+    </div>
+
+    <button class="ghost" id="fit">Recentrer</button>
+    <button class="ghost" id="toggle-list" aria-pressed="false">Liste</button>
+  </header>
+
+  <div class="body">
+    <aside class="rail">
+      <div class="block">
+        <span class="k">Tâches observées</span>
+        <div class="hero"><span class="big num" id="count-tasks">0</span><span class="unit">sur 3 semaines</span></div>
+        <div class="stack" id="stack" role="img" aria-label="Répartition des tâches par palier"></div>
+        <p class="note" id="stack-note"></p>
+      </div>
+
+      <div class="block">
+        <span class="k">Paliers</span>
+        <div class="dist" id="levels" role="group" aria-label="Filtrer par palier"></div>
+      </div>
+
+      <div class="block">
+        <span class="k">Légende</span>
+        <div class="legend"><div><span class="g"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="var(--p3)"/><text x="10" y="13.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--surface)">3</text></svg></span><span class="t"><b>Une tâche.</b> Le chiffre est le palier dominant.</span></div><div><span class="g"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="5" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/></svg></span><span class="t"><b>Un fichier</b> lu ou modifié.</span></div><div><span class="g"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="4.5" y="4.5" width="11" height="11" rx="2.6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/></svg></span><span class="t"><b>Un outil, un sous-agent ou un serveur MCP.</b></span></div><div><span class="g"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6" fill="var(--ink-3)" opacity=".45"/><circle cx="10" cy="10" r="8.6" fill="none" stroke="var(--warn)" stroke-width="1.6" stroke-dasharray="3 3"/></svg></span><span class="t">Tâche <b>abandonnée ou échouée</b>.</span></div><div><span class="g"><svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true"><path d="M1 15 L21 5" stroke="var(--accent)" stroke-width="1.8"/></svg></span><span class="t">Lien mis en avant au survol.</span></div></div>
+        <p class="note">Deux silhouettes suffisent&nbsp;: un rond pour ce que vous avez modifié, un carré pour ce avec quoi vous l'avez fait. Deux tâches qui partagent un fichier se rapprochent d'elles-mêmes.</p>
+      </div>
+
+      <div class="block">
+        <span class="k">Afficher</span>
+        <div class="toggles" id="kinds" role="group" aria-label="Types de nœuds"></div>
+      </div>
+
+      <div class="block">
+        <span class="k">Issue</span>
+        <div class="toggles" id="outcomes" role="group" aria-label="Filtrer par issue"></div>
+      </div>
+
+    </aside>
+
+    <main class="stage">
+      <canvas id="canvas"></canvas>
+      <div class="stagehint" id="hint">molette&nbsp;: zoom &middot; glisser&nbsp;: déplacer &middot; clic&nbsp;: détail</div>
+    </main>
+
+    <aside class="inspector" id="inspector" hidden aria-live="polite"></aside>
+  </div>
+
+  <section class="listpane" id="listpane" hidden aria-label="Liste des tâches">
+    <table>
+      <thead><tr>
+        <th>Tâche</th><th>Palier</th><th>Session</th><th>Date</th>
+        <th>Outils</th><th>Reprises</th><th>Durée</th><th>Issue</th>
+      </tr></thead>
+      <tbody id="listbody"></tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ *  Données de démonstration.
+ *  Forme volontairement identique à ce que renverra GET /api/graph :
+ *  des tâches, ce qu'elles ont touché, et leur répartition sur les
+ *  cinq paliers telle que la calculera le MaturityEngine.
+ * ------------------------------------------------------------------ */
+
+const LEVELS = [
+  { n: 1, name: "Prompt",   short: "formuler" },
+  { n: 2, name: "Contexte", short: "doser" },
+  { n: 3, name: "Harnais",  short: "équiper" },
+  { n: 4, name: "Boucle",   short: "laisser tourner" },
+  { n: 5, name: "Graphe",   short: "orchestrer" },
+];
+
+const F = p => ({ id: "f:" + p, kind: "file", label: p.split("/").pop(), path: p });
+const T = t => ({ id: "tool:" + t, kind: "tool", label: t });
+const A = a => ({ id: "agent:" + a, kind: "agent", label: a });
+const M = m => ({ id: "mcp:" + m, kind: "mcp", label: m });
+
+const ENTITIES = [
+  F("src/Harness/SpanFactory.cs"), F("src/Harness/SessionRegistry.cs"),
+  F("src/Harness/Program.cs"), F("src/Harness/HookEvent.cs"),
+  F("src/Api/MaturityEngine.cs"), F("src/Api/PhoenixClient.cs"), F("src/Api/RubricStore.cs"),
+  F("tests/SpanFactoryTests.cs"), F("tests/MaturityTests.cs"),
+  F("web/src/app/graph/graph.component.ts"), F("web/src/app/graph/graph.service.ts"),
+  F("web/src/app/app.routes.ts"), F("web/src/styles.scss"),
+  F("docker/docker-compose.yml"), F(".claude/settings.json"), F("README.md"),
+  T("Read"), T("Edit"), T("Write"), T("Grep"), T("Bash"), T("Task"), T("Skill"), T("WebFetch"),
+  A("Explore"), A("Plan"), A("code-reviewer"),
+  M("phoenix"), M("github"),
+];
+
+/* levels = part de chaque palier dans les signaux de la tâche */
+const TASKS = [
+  { id:"t01", title:"Comprendre le format des hooks", session:"s-0801", date:"2026-08-01", durationMin:74, toolCalls:41, rework:4, outcome:"completed",
+    levels:[.52,.18,.20,.10,0], touched:["f:src/Harness/HookEvent.cs","tool:Read","tool:Grep","tool:WebFetch"] },
+  { id:"t02", title:"Premier span vers Phoenix", session:"s-0801", date:"2026-08-01", durationMin:96, toolCalls:58, rework:6, outcome:"failed",
+    levels:[.44,.24,.22,.10,0], touched:["f:src/Harness/Program.cs","f:docker/docker-compose.yml","tool:Bash","tool:Edit","tool:Read"] },
+  { id:"t03", title:"Rejouer le premier span, en isolant l'export", session:"s-0802", date:"2026-08-02", durationMin:52, toolCalls:29, rework:1, outcome:"completed",
+    levels:[.30,.20,.38,.12,0], touched:["f:src/Harness/Program.cs","f:docker/docker-compose.yml","tool:Bash","tool:Edit"] },
+  { id:"t04", title:"Traduire les événements en spans OpenInference", session:"s-0804", date:"2026-08-04", durationMin:145, toolCalls:88, rework:3, outcome:"completed",
+    levels:[.22,.26,.34,.18,0], touched:["f:src/Harness/SpanFactory.cs","f:src/Harness/HookEvent.cs","tool:Edit","tool:Read","tool:Grep","agent:Explore"] },
+  { id:"t05", title:"Rattacher les spans entre deux requêtes", session:"s-0804", date:"2026-08-04", durationMin:68, toolCalls:37, rework:2, outcome:"completed",
+    levels:[.20,.34,.30,.16,0], touched:["f:src/Harness/SessionRegistry.cs","f:src/Harness/SpanFactory.cs","tool:Edit","tool:Read"] },
+  { id:"t06", title:"Banc d'essai sans dépendance", session:"s-0805", date:"2026-08-05", durationMin:112, toolCalls:64, rework:1, outcome:"completed",
+    levels:[.16,.18,.44,.22,0], touched:["f:tests/SpanFactoryTests.cs","f:src/Harness/SpanFactory.cs","tool:Write","tool:Bash","tool:Edit","agent:code-reviewer"] },
+  { id:"t07", title:"Brancher les hooks sur les vraies sessions", session:"s-0806", date:"2026-08-06", durationMin:44, toolCalls:22, rework:0, outcome:"completed",
+    levels:[.18,.12,.56,.14,0], touched:["f:.claude/settings.json","tool:Edit","tool:Read","tool:Skill"] },
+  { id:"t08", title:"Sessions abandonnées jamais fermées", session:"s-0807", date:"2026-08-07", durationMin:58, toolCalls:31, rework:3, outcome:"completed",
+    levels:[.24,.38,.26,.12,0], touched:["f:src/Harness/SessionRegistry.cs","f:src/Harness/Program.cs","tool:Edit","tool:Bash"] },
+  { id:"t09", title:"Client REST Phoenix", session:"s-0810", date:"2026-08-10", durationMin:87, toolCalls:49, rework:2, outcome:"completed",
+    levels:[.18,.20,.40,.22,0], touched:["f:src/Api/PhoenixClient.cs","tool:Edit","tool:WebFetch","mcp:phoenix","tool:Read"] },
+  { id:"t10", title:"Calcul des scores sur fenêtre glissante", session:"s-0811", date:"2026-08-11", durationMin:168, toolCalls:103, rework:2, outcome:"completed",
+    levels:[.14,.22,.26,.38,0], touched:["f:src/Api/MaturityEngine.cs","f:tests/MaturityTests.cs","tool:Edit","tool:Bash","tool:Task","agent:Plan"] },
+  { id:"t11", title:"Rubriques versionnées, append-only", session:"s-0812", date:"2026-08-12", durationMin:94, toolCalls:52, rework:1, outcome:"completed",
+    levels:[.16,.18,.24,.42,0], touched:["f:src/Api/RubricStore.cs","f:src/Api/MaturityEngine.cs","tool:Edit","tool:Task","agent:Plan"] },
+  { id:"t12", title:"Vue graphe Angular", session:"s-0814", date:"2026-08-14", durationMin:210, toolCalls:127, rework:5, outcome:"abandoned",
+    levels:[.34,.28,.18,.20,0], touched:["f:web/src/app/graph/graph.component.ts","f:web/src/styles.scss","tool:Edit","tool:Read","tool:Bash"] },
+  { id:"t13", title:"Vue graphe, reprise avec un plan écrit", session:"s-0817", date:"2026-08-17", durationMin:136, toolCalls:79, rework:1, outcome:"completed",
+    levels:[.14,.16,.22,.48,0], touched:["f:web/src/app/graph/graph.component.ts","f:web/src/app/graph/graph.service.ts","f:web/src/app/app.routes.ts","tool:Edit","tool:Task","agent:Plan","tool:Bash"] },
+  { id:"t14", title:"Revue croisée avant fusion", session:"s-0818", date:"2026-08-18", durationMin:63, toolCalls:38, rework:0, outcome:"completed",
+    levels:[.12,.14,.24,.22,.28], touched:["f:src/Api/MaturityEngine.cs","f:web/src/app/graph/graph.service.ts","agent:code-reviewer","agent:Explore","tool:Task","mcp:github"] },
+  { id:"t15", title:"Juger un lot de prompts en parallèle", session:"s-0819", date:"2026-08-19", durationMin:118, toolCalls:71, rework:1, outcome:"completed",
+    levels:[.10,.14,.18,.24,.34], touched:["f:src/Api/RubricStore.cs","agent:Explore","agent:code-reviewer","tool:Task","tool:Bash","mcp:phoenix"] },
+  { id:"t16", title:"Rejouer les rubriques rejetées autrement", session:"s-0820", date:"2026-08-20", durationMin:145, toolCalls:92, rework:0, outcome:"completed",
+    levels:[.08,.12,.16,.22,.42], touched:["f:src/Api/RubricStore.cs","f:src/Api/MaturityEngine.cs","f:tests/MaturityTests.cs","agent:Plan","agent:code-reviewer","tool:Task","mcp:phoenix"] },
+];
+
+const ADVICE = {
+  1:"Vos tâches de palier 1 partent souvent sans critère d'acceptation : la reprise arrive au deuxième message.",
+  2:"Le contexte pèse ici. Compacter avant d'être compacté coûte deux minutes et sauve un tour.",
+  3:"Bon réflexe d'outillage. La marge restante est du côté de la vérification automatique.",
+  4:"La boucle tourne. Le prochain gain est de la fermer sur un test vert plutôt que sur votre « stop ».",
+  5:"Orchestration réelle. À surveiller : les nœuds qui rejouent à l'identique au lieu de changer de stratégie.",
+};
+</script>
+
+<script>
+"use strict";
+
+/* ---------- jetons de thème, relus quand le thème change ---------- */
+const TOK = {};
+function readTokens(){
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ["--p1","--p2","--p3","--p4","--p5","--ink","--ink-2","--ink-3",
+                   "--line","--line-strong","--paper","--surface","--sunk","--accent",
+                   "--ok","--warn","--crit","--node-ink"])
+    TOK[k] = cs.getPropertyValue(k).trim();
+  TOK.ramp = [TOK["--p1"],TOK["--p2"],TOK["--p3"],TOK["--p4"],TOK["--p5"]];
+}
+readTokens();
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  readTokens(); paintRail(); paintList(); if (state.selected) paintInspector(); draw();
+});
+
+const dominant = t => t.levels.indexOf(Math.max(...t.levels)) + 1;
+const colorOf = lvl => TOK.ramp[lvl - 1];
+
+/* Le chiffre du palier doit rester lisible sur les cinq fonds de la rampe :
+   on choisit son encre d'après la luminance du fond, pas d'après le thème. */
+const inkCache = new Map();
+function inkOn(hex){
+  if (inkCache.has(hex)) return inkCache.get(hex);
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  let ink = "#FFFFFF";
+  if (m) {
+    const v = parseInt(m[1], 16);
+    const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    const L = 0.2126 * lin(v >> 16 & 255) + 0.7152 * lin(v >> 8 & 255) + 0.0722 * lin(v & 255);
+    ink = L > 0.34 ? "#0B1012" : "#FFFFFF";
+  }
+  inkCache.set(hex, ink);
+  return ink;
+}
+
+/* ---------- construction du graphe ---------- */
+const entityById = new Map(ENTITIES.map(e => [e.id, e]));
+const nodes = [];
+const links = [];
+const byId = new Map();
+
+for (const t of TASKS) {
+  const n = { id:t.id, kind:"task", task:t, label:t.title, level:dominant(t),
+              r: 10 + Math.sqrt(t.toolCalls) * 1.15,
+              x:0, y:0, vx:0, vy:0, tx:0, ty:0, deg:0, visible:true };
+  nodes.push(n); byId.set(n.id, n);
+}
+const usedEntities = new Set(TASKS.flatMap(t => t.touched));
+for (const e of ENTITIES) {
+  if (!usedEntities.has(e.id)) continue;
+  const r = e.kind === "file" ? 4.3 : 4.6;
+  const n = { id:e.id, kind:e.kind, entity:e, label:e.label, r, x:0, y:0, vx:0, vy:0, tx:0, ty:0, deg:0, visible:true };
+  nodes.push(n); byId.set(n.id, n);
+}
+for (const t of TASKS)
+  for (const id of t.touched) {
+    if (!byId.has(id)) continue;
+    links.push({ a: byId.get(t.id), b: byId.get(id) });
+    byId.get(t.id).deg++; byId.get(id).deg++;
+  }
+/* les nœuds très partagés grossissent un peu : ce sont les carrefours */
+for (const n of nodes) if (n.kind !== "task") n.r += Math.min(3.2, (n.deg - 1) * 0.55);
+
+/* semis déterministe : même disposition de départ à chaque ouverture */
+let seed = 7;
+const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+for (const n of nodes) { const a = rnd() * Math.PI * 2, d = 90 + rnd() * 380; n.x = Math.cos(a) * d; n.y = Math.sin(a) * d; }
+
+/* ---------- état ---------- */
+const state = {
+  mode: "graph",
+  levels: new Set([1,2,3,4,5]),
+  kinds: new Set(["file","tool","agent","mcp"]),
+  outcomes: new Set(["completed","failed","abandoned"]),
+  query: "",
+  hover: null,
+  selected: null,
+  view: { x:0, y:0, k:1 },
+  alpha: 1,
+};
+
+const KIND_LABEL = { file:"Fichiers", tool:"Outils", agent:"Sous-agents", mcp:"Serveurs MCP" };
+const OUTCOME_LABEL = { completed:"Terminée", failed:"Échouée", abandoned:"Abandonnée" };
+const OUTCOME_TOKEN = { completed:"--ok", failed:"--crit", abandoned:"--warn" };
+
+function matches(n){
+  const q = state.query.trim().toLowerCase();
+  if (!q) return true;
+  if (n.kind === "task") return n.task.title.toLowerCase().includes(q) || n.task.session.includes(q);
+  return (n.entity.path || n.entity.label).toLowerCase().includes(q);
+}
+function applyFilters(){
+  for (const n of nodes) {
+    if (n.kind === "task")
+      n.visible = state.levels.has(n.level) && state.outcomes.has(n.task.outcome);
+    else
+      n.visible = state.kinds.has(n.kind);
+  }
+  // un nœud touché ne reste visible que s'il relie encore une tâche visible
+  for (const n of nodes) {
+    if (n.kind === "task" || !n.visible) continue;
+    n.visible = links.some(l => l.b === n && l.a.visible);
+  }
+  state.alpha = Math.max(state.alpha, 0.5);
+}
+</script>
+
+<script>
+"use strict";
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+
+function resize(){
+  const r = canvas.getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.max(1, r.width); H = Math.max(1, r.height);
+  canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+/* ------------------------------------------------------------------ *
+ *  Simulation. Deux régimes :
+ *   - "graph"  : répulsion + ressorts. Les grappes émergent des
+ *                fichiers partagés, personne ne les déclare.
+ *   - "levels" : cinq couloirs, un par palier. Les tâches rejoignent
+ *                leur couloir, les nœuds touchés s'effacent — ils
+ *                n'ont pas de palier, et prétendre le contraire
+ *                serait un mensonge de mise en page.
+ * ------------------------------------------------------------------ */
+const LANE_TOP = 74;
+let laneW = 200;
+
+function computeLaneTargets(){
+  const vis = nodes.filter(n => n.kind === "task" && n.visible);
+  laneW = Math.max(150, (W - 60) / 5);
+  const perLane = [[],[],[],[],[]];
+  for (const n of vis) perLane[n.level - 1].push(n);
+  for (let i = 0; i < 5; i++) {
+    const lane = perLane[i].sort((a,b) => a.task.date.localeCompare(b.task.date));
+    const cx = 30 + laneW * i + laneW / 2 - W / 2;
+    const rowH = 82;
+    const fits = Math.max(2, Math.floor((H - LANE_TOP - 60) / rowH));
+    const cols = lane.length <= fits ? 1 : Math.max(1, Math.floor((laneW - 24) / 82));
+    lane.forEach((n, j) => {
+      const col = j % cols, row = Math.floor(j / cols);
+      n.tx = cx + (col - (cols - 1) / 2) * 80;
+      n.ty = LANE_TOP + 36 + row * rowH - H / 2;
+    });
+  }
+}
+
+function tick(){
+  const active = nodes.filter(n => n.visible);
+  if (state.mode === "levels") {
+    computeLaneTargets();
+    for (const n of active) {
+      if (n.kind !== "task") continue;
+      n.x += (n.tx - n.x) * (REDUCED ? 1 : 0.14);
+      n.y += (n.ty - n.y) * (REDUCED ? 1 : 0.14);
+    }
+    return;
+  }
+
+  const a = state.alpha;
+  for (let i = 0; i < active.length; i++) {
+    const ni = active[i];
+    for (let j = i + 1; j < active.length; j++) {
+      const nj = active[j];
+      let dx = nj.x - ni.x, dy = nj.y - ni.y;
+      let d2 = dx*dx + dy*dy;
+      if (d2 < 1) { dx = (rnd() - .5); dy = (rnd() - .5); d2 = 1; }
+      const d = Math.sqrt(d2);
+      // charge proportionnelle à la surface : une grosse tâche pousse plus loin
+      const force = Math.min(3.4, 13 * ni.r * nj.r / d2) * a;
+      const fx = dx / d * force, fy = dy / d * force;
+      ni.vx -= fx; ni.vy -= fy; nj.vx += fx; nj.vy += fy;
+
+      // séparation dure : deux nœuds ne se recouvrent jamais, quelle que soit
+      // la convergence de la simulation. Sans cela les grosses tâches
+      // s'empilent au centre et le graphe devient illisible.
+      const minD = ni.r + nj.r + 7;
+      if (d < minD) {
+        const push = (minD - d) / d * 0.5;
+        const px = dx * push, py = dy * push;
+        if (!ni.pinned) { ni.x -= px; ni.y -= py; }
+        if (!nj.pinned) { nj.x += px; nj.y += py; }
+      }
+    }
+  }
+  for (const l of links) {
+    if (!l.a.visible || !l.b.visible) continue;
+    const dx = l.b.x - l.a.x, dy = l.b.y - l.a.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const rest = l.a.r + l.b.r + 58;
+    const f = (d - rest) * 0.009 * a;
+    const fx = dx / d * f, fy = dy / d * f;
+    l.a.vx += fx; l.a.vy += fy; l.b.vx -= fx; l.b.vy -= fy;
+  }
+  for (const n of active) {
+    if (n.pinned) { n.vx = n.vy = 0; continue; }
+    n.vx -= n.x * 0.0010 * a; n.vy -= n.y * 0.0010 * a;
+    n.vx *= 0.85; n.vy *= 0.85;
+    n.x += n.vx; n.y += n.vy;
+  }
+  state.alpha = Math.max(0.015, state.alpha * 0.994);
+}
+
+/* ---------- dessin ---------- */
+function toScreen(n){
+  const v = state.view;
+  return [ (n.x + v.x) * v.k + W / 2, (n.y + v.y) * v.k + H / 2 ];
+}
+/* Deux silhouettes, pas quatre. La seule distinction que le fond doit porter :
+   ce que vous avez modifié (un fichier, rond) contre ce avec quoi vous l'avez
+   fait (outil, sous-agent, serveur MCP — carré). Le reste se lit dans
+   l'étiquette. Quatre formes sans légende, c'est du bruit qui ressemble à de
+   l'information. */
+function shape(px, py, r, kind){
+  ctx.beginPath();
+  if (kind === "file") { ctx.arc(px, py, r, 0, Math.PI * 2); return; }
+  const d = r * 1.74, x = px - d / 2, y = py - d / 2;
+  if (ctx.roundRect) ctx.roundRect(x, y, d, d, Math.min(3.4, d * 0.24));
+  else ctx.rect(x, y, d, d);
+}
+
+function neighboursOf(n){
+  const set = new Set([n]);
+  for (const l of links) { if (l.a === n) set.add(l.b); if (l.b === n) set.add(l.a); }
+  return set;
+}
+
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const v = state.view;
+  const focus = state.hover || state.selected;
+  const near = focus ? neighboursOf(focus) : null;
+  const searching = state.query.trim().length > 0;
+
+  if (state.mode === "levels") drawLanes();
+
+  // liens
+  ctx.lineWidth = Math.max(0.5, 0.9 * v.k);
+  for (const l of links) {
+    if (!l.a.visible || !l.b.visible) continue;
+    if (state.mode === "levels") continue;
+    const lit = near && near.has(l.a) && near.has(l.b);
+    ctx.strokeStyle = lit ? TOK["--accent"] : TOK["--line-strong"];
+    ctx.globalAlpha = lit ? 0.8 : (focus ? 0.04 : 0.12);
+    const [ax, ay] = toScreen(l.a), [bx, by] = toScreen(l.b);
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // nœuds touchés
+  for (const n of nodes) {
+    if (!n.visible || n.kind === "task") continue;
+    const [px, py] = toScreen(n);
+    const r = n.r * v.k;
+    let alpha = 1;
+    if (state.mode === "levels") alpha = 0.09;
+    else if (focus) alpha = near.has(n) ? 1 : 0.16;
+    else if (searching) alpha = matches(n) ? 1 : 0.16;
+    const lit = focus ? near.has(n) : (searching ? matches(n) : false);
+    ctx.globalAlpha = alpha;
+    shape(px, py, r, n.kind);
+    ctx.fillStyle = TOK["--surface"];  ctx.fill();
+    ctx.lineWidth = Math.max(1, (lit ? 1.8 : 1.2) * v.k);
+    ctx.strokeStyle = lit ? TOK["--ink-2"] : TOK["--line-strong"];
+    ctx.stroke();
+  }
+
+  // tâches
+  for (const n of nodes) {
+    if (!n.visible || n.kind !== "task") continue;
+    const [px, py] = toScreen(n);
+    const r = n.r * v.k;
+    let alpha = 1;
+    if (focus) alpha = near.has(n) ? 1 : 0.18;
+    else if (searching) alpha = matches(n) ? 1 : 0.18;
+    ctx.globalAlpha = alpha;
+
+    // anneau de répartition : seulement au survol ou en sélection
+    if (focus === n) drawRing(px, py, r);
+
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fillStyle = colorOf(n.level); ctx.fill();
+    // liseré de surface : sépare les bulles qui se chevauchent
+    ctx.lineWidth = 2; ctx.strokeStyle = TOK["--paper"]; ctx.stroke();
+    if (n === state.selected) {
+      ctx.lineWidth = 2; ctx.strokeStyle = TOK["--accent"];
+      ctx.beginPath(); ctx.arc(px, py, r + 3.5, 0, Math.PI * 2); ctx.stroke();
+    }
+    if (n.task.outcome !== "completed") {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = TOK[OUTCOME_TOKEN[n.task.outcome]];
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.arc(px, py, r + 3.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // le chiffre du palier : la couleur ne porte jamais l'information seule
+    if (r >= 9) {
+      ctx.fillStyle = inkOn(colorOf(n.level));
+      ctx.font = `600 ${Math.min(13, r * 0.95)}px "IBM Plex Mono", monospace`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(String(n.level), px, py + 0.5);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // étiquettes, par ordre de priorité et sans chevauchement : une étiquette
+  // qui en recouvre une autre ne se lit pas, autant ne pas la tracer.
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  // les nœuds eux-mêmes occupent le terrain en premier : une étiquette ne
+  // doit jamais recouvrir une bulle.
+  const placed = [];
+  for (const n of nodes) {
+    if (!n.visible) continue;
+    // en mode couloirs les nœuds touchés ne sont que des fantômes : les
+    // laisser réserver du terrain priverait des tâches de leur étiquette.
+    if (state.mode === "levels" && n.kind !== "task") continue;
+    const [px, py] = toScreen(n);
+    const r = n.r * v.k;
+    placed.push({ x: px - r, y: py - r, w: r * 2, h: r * 2 });
+  }
+  const candidates = nodes.filter(n => n.visible).map(n => {
+    const isTask = n.kind === "task";
+    const priority = focus === n ? 0 : (near && near.has(n)) ? 1 : (searching && matches(n)) ? 2 : isTask ? 3 : 5;
+    if (state.mode === "levels" && !isTask) return null;
+    const show = priority <= 2 || (isTask && (v.k > 0.72 || state.mode === "levels"));
+    return show ? { n, isTask, priority } : null;
+  }).filter(Boolean).sort((a, b) => a.priority - b.priority || b.n.r - a.n.r);
+
+  for (const { n, isTask, priority } of candidates) {
+    const [px, py] = toScreen(n);
+    const label = isTask ? n.label : (n.entity.path || n.label);
+    ctx.font = isTask ? `500 12px "IBM Plex Sans", sans-serif` : `400 10.5px "IBM Plex Mono", monospace`;
+    const max = isTask ? 30 : 34;
+    const text = label.length > max ? label.slice(0, max - 1) + "…" : label;
+    const w = ctx.measureText(text).width + 8;
+    const h = isTask ? 16 : 14;
+    const x = px - w / 2, y = py + n.r * v.k + 5;
+    const hit = placed.some(r => x < r.x + r.w && x + w > r.x && y < r.y + r.h && y + h > r.y);
+    if (hit && priority > 1) continue;
+    placed.push({ x, y, w, h });
+    ctx.globalAlpha = 0.94;
+    ctx.fillStyle = TOK["--paper"];
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = focus && !near.has(n) ? 0.25 : 1;
+    ctx.fillStyle = isTask ? TOK["--ink"] : TOK["--ink-3"];
+    ctx.fillText(text, px, y + 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawRing(px, py, r){
+  const t = (state.hover || state.selected).task;
+  const inner = r + 4, outer = r + 11;
+  let a0 = -Math.PI / 2;
+  for (let i = 0; i < 5; i++) {
+    const frac = t.levels[i];
+    if (frac <= 0.001) continue;
+    const a1 = a0 + frac * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(px, py, outer, a0 + 0.02, a1 - 0.02);
+    ctx.arc(px, py, inner, a1 - 0.02, a0 + 0.02, true);
+    ctx.closePath();
+    ctx.fillStyle = TOK.ramp[i];
+    ctx.fill();
+    a0 = a1;
+  }
+}
+
+function drawLanes(){
+  const v = state.view;
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  for (let i = 0; i < 5; i++) {
+    const x0 = ((30 + laneW * i) - W / 2 + v.x) * v.k + W / 2;
+    const w = laneW * v.k;
+    ctx.fillStyle = i % 2 ? TOK["--sunk"] : TOK["--paper"];
+    ctx.globalAlpha = i % 2 ? 0.55 : 0;
+    ctx.fillRect(x0, 0, w, H);
+    ctx.globalAlpha = 1;
+
+    const count = nodes.filter(n => n.kind === "task" && n.visible && n.level === i + 1).length;
+    ctx.fillStyle = TOK.ramp[i];
+    ctx.fillRect(x0 + 14, 30, 16, 16);
+    ctx.fillStyle = inkOn(TOK.ramp[i]);
+    ctx.font = `600 10px "IBM Plex Mono", monospace`;
+    ctx.textAlign = "center";
+    ctx.fillText(String(i + 1), x0 + 22, 41);
+    ctx.textAlign = "left";
+    ctx.fillStyle = TOK["--ink"];
+    ctx.font = `700 13px "Bricolage Grotesque", sans-serif`;
+    ctx.fillText(LEVELS[i].name, x0 + 38, 39);
+    ctx.fillStyle = TOK["--ink-3"];
+    ctx.font = `400 11px "IBM Plex Mono", monospace`;
+    ctx.fillText(count + (count > 1 ? " tâches" : " tâche"), x0 + 38, 53);
+  }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+}
+</script>
+
+<script>
+"use strict";
+
+/* ---------- interactions ---------- */
+function pick(cx, cy){
+  const v = state.view;
+  let best = null, bestD = Infinity;
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const n = nodes[i];
+    if (!n.visible) continue;
+    if (state.mode === "levels" && n.kind !== "task") continue;
+    const [px, py] = toScreen(n);
+    const d = Math.hypot(cx - px, cy - py);
+    const hit = Math.max(n.r * v.k + 4, 10);
+    if (d < hit && d < bestD) { best = n; bestD = d; }
+  }
+  return best;
+}
+
+let drag = null, panning = null;
+
+canvas.addEventListener("pointermove", e => {
+  const r = canvas.getBoundingClientRect();
+  const cx = e.clientX - r.left, cy = e.clientY - r.top;
+  if (drag) {
+    const v = state.view;
+    drag.node.x = (cx - W / 2) / v.k - v.x;
+    drag.node.y = (cy - H / 2) / v.k - v.y;
+    state.alpha = Math.max(state.alpha, 0.45);
+    return;
+  }
+  if (panning) {
+    state.view.x += (cx - panning.x) / state.view.k;
+    state.view.y += (cy - panning.y) / state.view.k;
+    panning = { x: cx, y: cy };
+    draw();
+    return;
+  }
+  const hit = pick(cx, cy);
+  if (hit !== state.hover) { state.hover = hit; canvas.style.cursor = hit ? "pointer" : "grab"; draw(); }
+});
+
+canvas.addEventListener("pointerdown", e => {
+  const r = canvas.getBoundingClientRect();
+  const cx = e.clientX - r.left, cy = e.clientY - r.top;
+  const hit = pick(cx, cy);
+  canvas.setPointerCapture(e.pointerId);
+  if (hit && state.mode === "graph") { drag = { node: hit, moved: false }; hit.pinned = true; }
+  else if (hit) { drag = { node: hit, moved: true, noMove: true }; }
+  else { panning = { x: cx, y: cy }; canvas.classList.add("dragging"); }
+});
+
+canvas.addEventListener("pointerup", e => {
+  const r = canvas.getBoundingClientRect();
+  const cx = e.clientX - r.left, cy = e.clientY - r.top;
+  if (drag) {
+    drag.node.pinned = false;
+    const hit = pick(cx, cy);
+    if (hit === drag.node && hit.kind === "task") select(hit);
+    drag = null;
+  } else if (panning) {
+    panning = null; canvas.classList.remove("dragging");
+    if (!pick(cx, cy)) select(null);
+  }
+});
+canvas.addEventListener("pointercancel", () => { if (drag) drag.node.pinned = false; drag = null; panning = null; });
+canvas.addEventListener("pointerleave", () => { if (!drag && !panning && state.hover) { state.hover = null; draw(); } });
+
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  const cx = e.clientX - r.left, cy = e.clientY - r.top;
+  const v = state.view;
+  const wx = (cx - W / 2) / v.k - v.x, wy = (cy - H / 2) / v.k - v.y;
+  const k = Math.min(3.2, Math.max(0.25, v.k * Math.exp(-e.deltaY * 0.0016)));
+  v.k = k;
+  v.x = (cx - W / 2) / k - wx;
+  v.y = (cy - H / 2) / k - wy;
+  draw();
+}, { passive: false });
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { select(null); document.getElementById("q").blur(); }
+});
+
+function fit(){
+  const vis = nodes.filter(n => n.visible);
+  if (!vis.length) return;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const n of vis) { x0 = Math.min(x0, n.x - n.r); y0 = Math.min(y0, n.y - n.r);
+                         x1 = Math.max(x1, n.x + n.r); y1 = Math.max(y1, n.y + n.r); }
+  const pad = 64;
+  const k = Math.min(2.2, Math.max(0.25, Math.min((W - pad*2) / (x1 - x0 || 1), (H - pad*2) / (y1 - y0 || 1))));
+  state.view.k = k;
+  state.view.x = -(x0 + x1) / 2;
+  state.view.y = -(y0 + y1) / 2;
+  draw();
+}
+
+/* ---------- panneau de détail ---------- */
+function select(node){
+  state.selected = node;
+  const insp = document.getElementById("inspector");
+  if (!node) { insp.hidden = true; draw(); return; }
+  insp.hidden = false;
+  paintInspector();
+  draw();
+}
+
+function fmtDur(min){ return min >= 60 ? `${Math.floor(min/60)} h ${String(min%60).padStart(2,"0")}` : `${min} min`; }
+function fmtDate(iso){
+  const d = new Date(iso + "T12:00:00Z");
+  return d.toLocaleDateString("fr-FR", { day:"numeric", month:"long" });
+}
+
+function paintInspector(){
+  const n = state.selected;
+  if (!n) return;
+  const t = n.task;
+  const outcomeCls = t.outcome === "completed" ? "ok" : t.outcome === "failed" ? "crit" : "warn";
+  const bars = LEVELS.map((L, i) => `
+    <div class="barrow">
+      <span class="lvlbadge" style="background:${TOK.ramp[i]};color:${inkOn(TOK.ramp[i])}">${L.n}</span>
+      <span class="bartrack"><span class="barfill" style="width:${(t.levels[i]*100).toFixed(0)}%;background:${TOK.ramp[i]}"></span></span>
+      <span class="barval">${(t.levels[i]*100).toFixed(0)} %</span>
+    </div>`).join("");
+  const chips = t.touched.map(id => {
+    const e = entityById.get(id);
+    return `<span>${e ? (e.path || e.label) : id}</span>`;
+  }).join("");
+
+  document.getElementById("inspector").innerHTML = `
+    <div class="insphead">
+      <h2>${t.title}</h2>
+      <button class="close" id="insp-close" aria-label="Fermer le détail">&times;</button>
+    </div>
+    <div><span class="pill ${outcomeCls}">${OUTCOME_LABEL[t.outcome]}</span></div>
+    <div class="facts">
+      <div class="fact"><div class="k">Palier dominant</div><div class="v">${n.level} — ${LEVELS[n.level-1].name}</div></div>
+      <div class="fact"><div class="k">Session</div><div class="v">${t.session}</div></div>
+      <div class="fact"><div class="k">Date</div><div class="v">${fmtDate(t.date)}</div></div>
+      <div class="fact"><div class="k">Durée</div><div class="v">${fmtDur(t.durationMin)}</div></div>
+      <div class="fact"><div class="k">Appels d'outils</div><div class="v">${t.toolCalls}</div></div>
+      <div class="fact"><div class="k">Reprises</div><div class="v">${t.rework}</div></div>
+    </div>
+    <div class="block">
+      <span class="k">Répartition réelle</span>
+      <div class="bars">${bars}</div>
+    </div>
+    <div class="block">
+      <span class="k">Touché par cette tâche</span>
+      <div class="touched">${chips}</div>
+    </div>
+    <p class="advice"><strong>Ce que le coach en dira.</strong> ${ADVICE[n.level]}</p>
+  `;
+  document.getElementById("insp-close").addEventListener("click", () => select(null));
+}
+
+/* ---------- rail & liste ---------- */
+function paintRail(){
+  const vis = TASKS.filter(t => state.levels.has(dominant(t)) && state.outcomes.has(t.outcome));
+  document.getElementById("count-tasks").textContent = vis.length;
+
+  const counts = [1,2,3,4,5].map(l => TASKS.filter(t => dominant(t) === l).length);
+  const total = counts.reduce((a,b) => a+b, 0) || 1;
+  document.getElementById("stack").innerHTML = counts.map((c,i) =>
+    c ? `<span style="flex:${c};background:${TOK.ramp[i]}"></span>` : "").join("");
+
+  const top = counts.indexOf(Math.max(...counts)) + 1;
+  document.getElementById("stack-note").textContent =
+    `Votre travail se concentre sur le palier ${top} — ${LEVELS[top-1].name.toLowerCase()}. Les paliers 4 et 5 n'apparaissent qu'à partir du 11 août.`;
+
+  document.getElementById("levels").innerHTML = LEVELS.map((L,i) => `
+    <button data-level="${L.n}" aria-pressed="${state.levels.has(L.n)}">
+      <span class="chip" style="background:${TOK.ramp[i]};color:${inkOn(TOK.ramp[i])}">${L.n}</span>
+      <span class="name">${L.name}</span>
+      <span class="n">${counts[i]}</span>
+    </button>`).join("");
+  document.querySelectorAll("#levels button").forEach(b =>
+    b.addEventListener("click", () => {
+      const l = +b.dataset.level;
+      state.levels.has(l) ? state.levels.delete(l) : state.levels.add(l);
+      if (!state.levels.size) state.levels = new Set([1,2,3,4,5]);
+      applyFilters(); paintRail(); paintList(); draw();
+    }));
+
+  const glyphs = {
+    file:'<svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    tool:'<svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    agent:'<svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    mcp:'<svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  };
+  document.getElementById("kinds").innerHTML = Object.keys(KIND_LABEL).map(k =>
+    `<button data-kind="${k}" aria-pressed="${state.kinds.has(k)}">${glyphs[k]}${KIND_LABEL[k]}</button>`).join("");
+  document.querySelectorAll("#kinds button").forEach(b =>
+    b.addEventListener("click", () => {
+      const k = b.dataset.kind;
+      state.kinds.has(k) ? state.kinds.delete(k) : state.kinds.add(k);
+      applyFilters(); paintRail(); draw();
+    }));
+
+  document.getElementById("outcomes").innerHTML = Object.keys(OUTCOME_LABEL).map(o =>
+    `<button data-outcome="${o}" aria-pressed="${state.outcomes.has(o)}">${OUTCOME_LABEL[o]}</button>`).join("");
+  document.querySelectorAll("#outcomes button").forEach(b =>
+    b.addEventListener("click", () => {
+      const o = b.dataset.outcome;
+      state.outcomes.has(o) ? state.outcomes.delete(o) : state.outcomes.add(o);
+      if (!state.outcomes.size) state.outcomes = new Set(Object.keys(OUTCOME_LABEL));
+      applyFilters(); paintRail(); paintList(); draw();
+    }));
+}
+
+function paintList(){
+  const rows = TASKS
+    .filter(t => state.levels.has(dominant(t)) && state.outcomes.has(t.outcome))
+    .sort((a,b) => b.date.localeCompare(a.date))
+    .map(t => {
+      const l = dominant(t);
+      return `<tr data-id="${t.id}">
+        <td class="t">${t.title}</td>
+        <td><span class="lvlbadge" style="background:${TOK.ramp[l-1]};color:${inkOn(TOK.ramp[l-1])}">${l}</span> ${LEVELS[l-1].name}</td>
+        <td class="m">${t.session}</td>
+        <td class="m">${t.date}</td>
+        <td class="m">${t.toolCalls}</td>
+        <td class="m">${t.rework}</td>
+        <td class="m">${fmtDur(t.durationMin)}</td>
+        <td>${OUTCOME_LABEL[t.outcome]}</td>
+      </tr>`;
+    }).join("");
+  const body = document.getElementById("listbody");
+  body.innerHTML = rows;
+  body.querySelectorAll("tr").forEach(tr =>
+    tr.addEventListener("click", () => { const n = byId.get(tr.dataset.id); select(n); centerOn(n); }));
+}
+
+function centerOn(n){
+  state.view.x = -n.x; state.view.y = -n.y;
+  state.view.k = Math.max(state.view.k, 1.1);
+  draw();
+}
+
+/* ---------- barre du haut ---------- */
+const bGraph = document.getElementById("mode-graph");
+const bLevels = document.getElementById("mode-levels");
+function setMode(m){
+  state.mode = m;
+  bGraph.setAttribute("aria-pressed", String(m === "graph"));
+  bLevels.setAttribute("aria-pressed", String(m === "levels"));
+  document.getElementById("hint").textContent = m === "levels"
+    ? "cinq couloirs, un par palier · les nœuds touchés s'effacent : ils n'ont pas de palier"
+    : "molette : zoom · glisser : déplacer · clic : détail";
+  if (m === "levels") { state.view = { x:0, y:0, k:1 }; computeLaneTargets(); }
+  else { state.alpha = 1; }
+  draw();
+}
+bGraph.addEventListener("click", () => setMode("graph"));
+bLevels.addEventListener("click", () => setMode("levels"));
+document.getElementById("fit").addEventListener("click", fit);
+
+const listPane = document.getElementById("listpane");
+const bList = document.getElementById("toggle-list");
+bList.addEventListener("click", () => {
+  const open = listPane.hidden;
+  listPane.hidden = !open;
+  bList.setAttribute("aria-pressed", String(open));
+  requestAnimationFrame(resize);
+});
+
+document.getElementById("q").addEventListener("input", e => { state.query = e.target.value; draw(); });
+
+/* ---------- boucle ---------- */
+applyFilters(); paintRail(); paintList();
+for (let i = 0; i < 520; i++) tick();   // pré-chauffe : le graphe s'ouvre déjà démêlé
+requestAnimationFrame(() => { resize(); fit(); });
+
+let last = 0;
+function loop(ts){
+  if (ts - last > 16) {
+    last = ts;
+    if (state.mode === "graph" ? state.alpha > 0.016 : true) { tick(); draw(); }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>

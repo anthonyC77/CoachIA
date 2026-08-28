@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>coachingia</AssemblyName>
+    <RootNamespace>CoachingIA.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../CoachingIA.Harness.Core/CoachingIA.Harness.Core.csproj" />
+  </ItemGroup>
+</Project>

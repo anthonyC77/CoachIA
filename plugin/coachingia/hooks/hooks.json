@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart":       [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/session-start",  "timeout": 5 }] }],
+    "SessionEnd":         [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/session-end",    "timeout": 5 }] }],
+    "UserPromptSubmit":   [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/user-prompt",    "timeout": 5 }] }],
+    "Stop":               [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/stop",           "timeout": 5 }] }],
+    "StopFailure":        [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/stop-failure",   "timeout": 5 }] }],
+    "PostToolUse":        [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/post-tool",      "timeout": 5 }] }],
+    "PostToolUseFailure": [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/post-tool-fail", "timeout": 5 }] }],
+    "PostToolBatch":      [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/post-tool-batch","timeout": 5 }] }],
+    "PreCompact":         [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/pre-compact",    "timeout": 5 }] }],
+    "PostCompact":        [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/post-compact",   "timeout": 5 }] }],
+    "SubagentStart":      [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/subagent-start", "timeout": 5 }] }],
+    "SubagentStop":       [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/subagent-stop",  "timeout": 5 }] }],
+    "TaskCreated":        [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/task-created",   "timeout": 5 }] }],
+    "TaskCompleted":      [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/task-completed", "timeout": 5 }] }],
+    "PermissionDenied":   [{ "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/permission-denied", "timeout": 5 }] }]
+  }
+}

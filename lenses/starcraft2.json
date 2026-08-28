@@ -1,0 +1,343 @@
+{
+  "id": "starcraft2",
+  "name": "StarCraft II",
+  "patch": "5.0.16",
+  "tagline": "Le vocabulaire du ladder : build order, inject, scout, détection. Pas la théorie du jeu — les parties qu'on perd et les raisons pour lesquelles on les perd.",
+
+  "levels": {
+    "1": {
+      "term": "Build order",
+      "analogy": "Personne ne lance une partie de ladder en se disant « bon, je vais faire des unités ». On dit : hatch first, pool derrière, extracteur dans la foulée, ling speed lancé, drone scout parti avant que sa deuxième base ne soit posée. Chaque ligne a un timing et une raison, et la dernière dit à quoi on saura que ça a marché. Un prompt, c'est exactement ça. « Regarde le module d'authentification » n'est pas un build order, c'est un joueur qui clique au hasard en espérant que ça vienne tout seul.",
+      "pitfall": "Ouvrir sans plan et improviser au contact. On appelle ça jouer au feeling, et ça tient jusqu'au premier adversaire qui, lui, a un plan et l'exécute à la seconde près."
+    },
+    "2": {
+      "term": "Supply, banque et injects",
+      "analogy": "Le supply block est la faute la plus banale du jeu et celle qui coûte le plus de parties. Tu es à 200 de banque, tes larves s'accumulent, tes trois hatcheries sont pleines, et rien ne sort parce que l'overlord n'est pas là. Trente secondes de bloc, c'est une douzaine d'unités qui n'existeront jamais, et tu le paieras au timing d'en face sans comprendre pourquoi tu es en dessous. La fenêtre de contexte marche pareil : un bon joueur pose son overlord avant d'en avoir besoin, un bon praticien compacte avant d'être compacté.",
+      "pitfall": "Subir le blocage au lieu de le devancer. La compaction automatique, c'est le supply block : quand elle se déclenche, la production est déjà à l'arrêt depuis un moment."
+    },
+    "3": {
+      "term": "Composition et détection",
+      "analogy": "Du ling only, ça monte vite et ça gagne des parties en Bronze. Puis tu tombes sur des banelings, ou sur des colosses, ou simplement sur un mur avec deux sentries derrière, et tu regardes quarante unités fondre en quatre secondes sans avoir infligé de dégâts. Une composition, c'est ce qui te permet de répondre à ce que l'autre sort — et la détection, c'est ce qui te permet de le voir. Le harnais, c'est ta compo : skills, sous-agents, MCP, hooks. Les tests, c'est ton overseer : sans lui, tu ne perds pas parce que tu es mauvais, tu perds parce que tu ne vois pas ce qui te tue.",
+      "pitfall": "Faire du ling only jusqu'à la fin. Tout au Bash, tout à la main, aucun détecteur, et la première régression invisible t'emmène tranquillement jusqu'au GG."
+    },
+    "4": {
+      "term": "Macro",
+      "analogy": "L'écart entre un Bronze et un Master ne se voit pas dans le micro : il se voit dans ce qui tourne pendant qu'il regarde ailleurs. Pendant que le Master micro sa bataille au milieu de la carte, ses reines injectent, ses drones se remettent au gaz, sa quatrième base se pose. Le Bronze, lui, gagne son escarmouche à six unités et remonte sur sa base avec 900 minerais qui dorment. Laisser la boucle tourner, c'est faire de la macro : donner des ordres qui s'exécutent seuls et revenir vérifier le résultat, pas piloter chaque unité au clic.",
+      "pitfall": "Micro-gérer six unités pendant que la base ne produit rien. Reprendre la main à chaque appel d'outil, c'est ça, et ça se paie exactement pareil : en banque qui monte et en armée qui n'existe pas."
+    },
+    "5": {
+      "term": "Multi-prong et retournement",
+      "analogy": "Le multi-prong, c'est la ligne entre bien jouer et jouer un cran au-dessus. Nydus dans la ligne de drones, mutas sur la troisième, armée principale qui tient le milieu : trois menaces, une seule caméra en face. Il peut en gérer deux, jamais les trois. Et au-dessus encore, il y a le mouv qu'on se repasse dix ans plus tard : le Protoss avance avec sa Mothership et sa death ball, tout le monde a déjà tapé « gg » dans sa tête — et un Infestor sort du creep, Neural Parasite sur la Mothership. Deux secondes plus tard c'est SON Vortex, lancé par toi, sur SA propre armée. Il n'a pas perdu à cause d'une unité de plus : sa meilleure pièce est devenue la tienne. Orchestrer des agents, c'est viser ça — pas seulement lancer plusieurs choses en parallèle, mais retourner ce qui devait vous écraser, et ne jamais renvoyer le même harass dans la même tourelle.",
+      "pitfall": "Tout envoyer en une seule boule au milieu de la carte, et rejouer la même attaque au même endroit en espérant que cette fois-ci ça passe."
+    }
+  },
+
+  "signals": {
+    "has_acceptance_criteria": [
+      "un build order sans condition de sortie. Tu lances la partie en te disant « je fais des unités et on verra » : pas de timing, pas de scout prévu, aucune idée de ce à quoi ressemble une bonne cinquième minute. Un vrai build order tient en une ligne et dit quand il est réussi",
+      "tu joues sans savoir ce que tu veux voir arriver. Demande à un joueur correct où il en sera à 6:00 : il te répond à la seconde et à l'unité près. Demande-lui à quoi il saura que son ouverture a marché : il te répond aussi. Les deux réponses tiennent en une phrase, et c'est ce qui sépare une ouverture d'une improvisation",
+      "un plan qui ne dit pas quand il est fini n'est pas un plan, c'est une intention. Sur le ladder ça donne le joueur qui construit, construit, construit, et qui se demande à 8:00 s'il attaque ou s'il expand — pendant que l'autre, qui le savait depuis le début, est déjà en train de le faire"
+    ],
+
+    "rework_ratio": [
+      "tu as annulé ton build en cours de route. Tu pars sur une ouverture, tu vois quelque chose que tu ne comprends pas, tu cancel, tu remets autre chose, tu re-cancel — au bout de trois changements d'avis tu joues la suite avec deux drones de retard, contre quelqu'un qui a suivi son plan sans broncher",
+      "changer d'avis en pleine exécution coûte plus cher que le mauvais plan qu'on remplace. Le bâtiment annulé rend ses ressources, jamais le temps. Trois secondes ici, cinq là, et tu arrives au premier engagement avec l'armée de quelqu'un qui aurait commencé trente secondes après toi",
+      "le drone qui part construire, revient, repart ailleurs : à chaque hésitation il ne mine pas. Sur une partie ça ne se voit pas dans le replay, ça se voit dans le score de ressources à 10:00 — et dans l'engagement qu'on perd de trois unités"
+    ],
+
+    "first_try_success": [
+      "presque rien ne passe du premier coup. Un build appris se rejoue cent fois sans hésiter : chaque bâtiment au bon timing, aucun retour en arrière. Là, c'est l'inverse — tu poses, tu regardes, tu reprends, et chaque aller-retour est du temps que le joueur d'en face n'a pas eu à payer",
+      "tu joues chaque partie comme si c'était la première. Ce qui fait qu'un build devient fiable, ce n'est pas de le comprendre, c'est de l'avoir exécuté assez de fois pour ne plus y penser — et tant qu'on y pense, on hésite, et tant qu'on hésite, on est en retard",
+      "un plan qu'on doit corriger dès la deuxième minute n'était pas un plan raté : il était trop vague pour être raté. On ne peut pas dévier d'un chemin qu'on n'avait pas tracé"
+    ],
+
+    "context_pressure": [
+      "tu joues supply block. Banque pleine, larves qui s'entassent, et rien ne sort parce que le dépôt n'est pas là. Ce n'est pas une petite perte : c'est toute la production de la minute suivante qui n'existera pas, et tu t'en apercevras au timing d'en face",
+      "tu produis jusqu'au plafond et tu poses ton dépôt quand la production est déjà arrêtée. Un joueur correct le pose avant d'en avoir besoin — pas parce qu'il est prévoyant, parce qu'il a perdu assez de parties pour savoir que ces trente secondes-là ne se rattrapent pas",
+      "il y a deux façons d'arriver au plafond : parce qu'on a beaucoup produit, ou parce qu'on a oublié de faire de la place. La deuxième est la seule qui coûte des parties, et c'est toujours celle qu'on découvre trop tard",
+      "depuis que la partie démarre à huit ouvriers, la marge du début a fondu : ceux qui rejouent leur ancien build au supply près se retrouvent bloqués là où ça passait avant. La fenêtre de contexte ne pardonne pas plus : le réglage d'hier n'est pas la marge d'aujourd'hui"
+    ],
+
+    "cache_read_ratio": [
+      "tu re-scoutes la même carte à chaque tour. Tu as déjà envoyé un overlord voir sa rampe il y a deux minutes, tu en renvoies un deuxième pour voir la même chose, alors qu'il suffisait de te souvenir de ce que tu avais vu",
+      "l'information payée deux fois est de l'information gaspillée. Ce qui distingue un bon scout, ce n'est pas le nombre d'allers-retours : c'est ce qu'il retient du premier, et ce qu'il en déduit pour les cinq minutes suivantes",
+      "tu redécouvres à 8:00 ce que tu savais déjà à 3:00. Rien n'a changé entre les deux, sauf que tu as repayé le trajet"
+    ],
+
+    "load_precision": [
+      "tu balayes toute la carte au lieu d'envoyer un ouvrier au bon endroit. Le scout utile n'est pas celui qui fait le tour du monde : c'est le drone qui arrive devant la rampe et qui répond à une seule question — combien de gaz, combien de bâtiments de production, est-ce que je vois une expansion. Trois secondes de regard, et tu sais quoi faire des cinq minutes suivantes",
+      "l'overlord qui traverse la carte en diagonale meurt sur un stalker et ne t'apprend rien. Celui qui se pose au bon coin, hors de portée, te donne la même information pendant cinq minutes sans rien coûter. La différence n'est pas le nombre de scouts, c'est de savoir ce qu'on cherche avant de partir",
+      "regarder partout, c'est ne regarder nulle part. Un scout qui n'a pas de question n'a pas de réponse à ramener, et il coûte quand même l'unité et le trajet"
+    ],
+
+    "harness_breadth": [
+      "ta composition est trop étroite, et c'est comme ça qu'on se fait rouler dessus. Le scénario classique : tu joues ta partie tranquillement, tu ne scoutes pas parce que ça se passe bien, et à 11:00 tu entends le bruit d'un Battlecruiser au-dessus de ta ligne d'ouvriers. Le Terran a rush le Fusion Core, tu n'as pas une seule unité anti-aérienne, et il te reste vingt secondes avant que ta base soit vide. Ce n'est pas le Battlecruiser qui t'a battu, c'est de n'avoir eu qu'une seule réponse possible à toute la partie",
+      "une seule unité, c'est une seule réponse. Ça marche jusqu'à ce qu'on te pose la question à laquelle elle ne répond pas — et ce jour-là il n'y a rien à micro, rien à sauver, juste à regarder",
+      "le tech switch est ce qui punit les compos étroites : l'autre change de branche, toi tu n'en as qu'une. Le temps de sortir le bâtiment, de lancer la production et d'attendre la première unité, la partie s'est décidée sans toi",
+      "élargir sa compo ne se fait pas dans l'urgence. Le bâtiment qu'on pose quand on en a besoin arrive toujours quarante secondes trop tard ; celui qu'on a posé sans en avoir besoin est celui qui sauve la partie"
+    ],
+
+    "verification_present": [
+      "tu n'as pas de détecteur, et c'est le pire moment pour s'en apercevoir. Tu joues contre un Protoss, la partie est équilibrée, tu tiens le milieu — et d'un coup tes ouvriers commencent à mourir un par un sans que rien n'apparaisse à l'écran. Des Dark Templars. Deux suffisent. Ils tapent, tu cliques, il n'y a rien à cliquer ; le temps que la détection sorte, ta ligne de minage est vide et la partie est jouée. Une tâche qui se termine sans qu'un test ait tourné, c'est exactement cette partie-là : tu ne la vois même pas se perdre",
+      "les Widow Mines sont posées sur ton chemin depuis deux minutes. Sans détection tu ne les vois pas, et tu passes dessus avec toute ton armée. Une seule salve, huit unités, et le pire c'est que tu ne sauras pas quoi corriger : tu n'as rien vu",
+      "la Banshee cloak fait le tour de ta base pendant que tu prépares ton attaque. Elle ne tue pas vite, elle tue continûment, et chaque seconde sans détecteur est une seconde où tu paies sans pouvoir répondre. « Ça a l'air de bien se passer » n'est pas une information — c'est l'absence d'information",
+      "tout s'est bien passé, et c'est justement ce qui ne prouve rien. Une partie gagnée sans Overseer n'a pas validé l'absence de détection : elle a validé qu'aucun Dark Templar n'est passé ce jour-là. Ce n'est pas la même information, et la deuxième ne se rejoue pas"
+    ],
+
+    "tool_failure_rate": [
+      "des unités qui meurent sans rien faire gagner. Tu A-move ta boule dans les banelings, tu perds vingt unités en une seconde et demie, et tu recommences deux minutes plus tard avec la même approche. Ce n'est pas un manque d'unités, c'est un problème de cadrage : personne n'a regardé ce qu'il y avait en face avant d'appuyer",
+      "attaquer dans un mur tenu par des sentries, c'est offrir son armée. L'outil n'est pas cassé, l'endroit est mal choisi — et la deuxième tentative au même endroit coûte exactement le même prix",
+      "quand deux engagements de suite se passent mal au même endroit, le problème n'est plus l'exécution. C'est le choix du terrain, et personne ne l'a reconsidéré entre les deux"
+    ],
+
+    "autonomy_ratio": [
+      "ta part de macro contre ta part de micro. Tu passes quarante secondes à sauver six unités dans un coin de la carte pendant que tes bases ne produisent rien et que la banque monte. Tu gagnes l'escarmouche et tu perds la partie deux minutes plus tard, sans jamais faire le lien entre les deux",
+      "le micro est spectaculaire, la macro gagne. Un joueur qui tient sa production avec 40 d'APM bat un joueur qui contrôle magnifiquement avec 200 — parce que l'un a une armée et l'autre a un beau replay",
+      "reprendre la main à chaque pas, c'est jouer la partie à la place de sa base. Pendant ce temps la production attend un ordre, et les ordres qu'on ne donne pas coûtent plus cher que ceux qu'on donne mal",
+      "il y a un moment, dans chaque partie, où il faut lâcher la caméra et laisser tourner. Ceux qui ne le font jamais plafonnent — pas par manque de technique, par excès de contrôle"
+    ],
+
+    "parallelism_index": [
+      "produire dans toutes les bases à la fois, pas l'une après l'autre. Trois bases qui tournent en même temps, ce n'est pas trois fois plus de clics : c'est un seul groupe de contrôle et une seule décision",
+      "tu fais la queue là où rien ne dépend de rien. Deux bâtiments qui n'ont pas besoin l'un de l'autre se lancent ensemble, et le temps gagné ne se rattrape pas plus tard",
+      "sérialiser ce qui est indépendant, c'est s'imposer un délai que personne n'a demandé. L'adversaire, lui, ne t'attend pas"
+    ],
+
+    "loop_closure": [
+      "tu lances l'attaque et tu regardes ailleurs. Le harass part, tu passes sur ta macro, et tu ne sauras jamais s'il a fait des dégâts ou s'il est mort en arrivant. Une attaque se termine sur un résultat observé — pas sur le moment où tu as décidé de penser à autre chose",
+      "un drop qu'on ne regarde pas est un drop qu'on a offert. Il a peut-être tué douze ouvriers, il a peut-être fondu sur une tourelle : tant que tu ne sais pas lequel, tu joues la suite à l'aveugle",
+      "arrêter parce qu'on en a assez, ce n'est pas la même chose que s'arrêter parce que c'est fini. La première façon laisse toujours la question ouverte, et c'est elle qui revient au moment où on ne peut plus rien y faire"
+    ],
+
+    "graph_depth": [
+      "le nombre de groupes de contrôle réellement actifs : combien de menaces tu tiens en même temps sans en lâcher une",
+      "deux fronts, c'est le double de gestion et le triple d'effet — à condition de savoir ce que chacun cherche à obtenir, et quand il doit s'arrêter"
+    ],
+
+    "self_correction": [
+      "renvoyer le même drop au même endroit. Le premier s'est fait sortir par une tourelle, alors tu en renvoies un deuxième dans la même tourelle en espérant que cette fois ça passe. Ça ne passe pas. Changer d'angle, ce n'est pas abandonner le harass, c'est arriver par l'autre côté de la carte",
+      "la définition d'un joueur qui stagne : il rejoue la même attaque contre le même refus. La position n'a pas changé entre les deux tentatives — sauf qu'il a maintenant une armée en moins",
+      "après un échec, il y a deux options honnêtes : changer d'angle, ou changer d'objectif. Recommencer à l'identique n'en est pas une, c'est juste plus lent à admettre"
+    ]
+  },
+
+  "challenges": {
+    "has_acceptance_criteria": [
+      "Écris ton build order avant de lancer : ce que tu veux, à quel moment, et à quoi tu sauras que c'est fait. Si tu n'arrives pas à écrire la dernière ligne, c'est que tu ne sais pas encore ce que tu joues.",
+      "Cette semaine, aucune partie lancée sans savoir à quoi ressemble une bonne cinquième minute. Une phrase suffit, mais elle doit être écrite avant."
+    ],
+    "compaction_mode": [
+      "Pose l'overlord avant le blocage. Deux compactions choisies cette semaine, aucune subie — un supply block, ça se voit venir trente secondes à l'avance.",
+      "Cette semaine, la marge se prend avant d'en avoir besoin : compacte à mi-fenêtre, en disant ce qu'il faut garder."
+    ],
+    "verification_present": [
+      "Sors un détecteur à chaque partie. Aucune tâche close sans vérification automatique : c'est lui qui te dit que les DT sont là avant que ta ligne d'ouvriers ne soit vide.",
+      "Cette semaine, aucune partie gagnée « à l'impression ». Une commande qui prouve, à chaque fin de tâche."
+    ],
+    "loop_closure": [
+      "Ne quitte pas ton attaque des yeux : trois boucles fermées sur un test vert, pas sur ton « stop ». Un harass dont tu ne connais pas le résultat n'a servi à rien.",
+      "Cette semaine, dis à quoi on reconnaît que c'est fini — et laisse la boucle aller jusque-là."
+    ],
+    "self_correction": [
+      "Change d'angle après un échec. Aucun nœud rejoué à l'identique cette semaine : si ça s'est fait sortir une fois, ça se fera sortir la deuxième.",
+      "Cette semaine, après deux échecs au même endroit, nomme le changement d'approche avant de relancer."
+    ]
+  },
+
+  "moments": {
+    "rework": [
+      "le build a été annulé plusieurs fois avant de repartir : trois changements d'avis au début, et l'économie ne s'en est jamais remise",
+      "beaucoup d'hésitation en ouverture — le drone repart trois fois, et le retard se voit encore dix minutes plus tard"
+    ],
+    "abandon": [
+      "la partie a été quittée avant la fin, sans savoir si la position était perdue ou seulement inconfortable",
+      "gg tapé sur une impression. Peut-être à raison — mais le replay n'a pas été regardé"
+    ],
+    "compaction_subie": [
+      "supply block : l'overlord est arrivé après le blocage, pas avant",
+      "la production s'est arrêtée avant qu'on pense à faire de la place"
+    ],
+    "tool_failures": [
+      "plusieurs unités perdues sur la même erreur, sans changer d'approche entre les deux",
+      "deux engagements ratés au même endroit, et le terrain n'a jamais été remis en question"
+    ],
+    "no_verification": [
+      "aucun détecteur de toute la partie — tout s'est bien passé, ce qui ne prouve rien",
+      "rien n'a été vérifié, et rien n'a cassé. Les deux sont vrais, et le second ne découle pas du premier"
+    ]
+  },
+
+  "races": {
+    "zerg": {
+      "name": "Zerg",
+      "nemesis": "protoss",
+      "tagline": "Vu de la larve : injects, creep, et l'art de droner juste assez pour ne pas mourir.",
+
+      "signals": {
+        "has_acceptance_criteria": [
+          "un build order sans condition de sortie. Tu drones parce que droner fait plaisir, sans avoir décidé jusqu'où — et le Protoss pose sa deuxième forge dans ton angle mort. Le cannon rush ne gagne jamais contre quelqu'un qui a un plan et qui scoute à l'heure ; il gagne contre celui qui improvisait",
+          "en Zerg, tout le jeu tient dans une seule décision répétée : je drone ou je fais des unités. Sans condition écrite, tu la prends à chaque larve, au feeling, et tu finis toujours du mauvais côté — trop greedy contre un all-in, trop paranoïaque contre un joueur qui expand tranquillement",
+          "« je verrai bien ce qu'il fait » n'est pas un plan, c'est une délégation. Tu laisses l'autre décider de ta partie, et il ne s'en prive pas",
+          "demande-toi où tu veux être quand ta troisième tourne à plein. Si tu ne sais pas répondre, tu n'as pas d'ouverture : tu as une habitude"
+        ],
+
+        "rework_ratio": [
+          "tu as annulé ton build en cours de route. Tu pars hatch first, tu vois un pylon qui traîne trop près, tu paniques, tu cancel pour poser un pool — puis tu vois que c'était juste un scout, tu re-cancel, et te voilà avec trois drones de retard et un plan qui ne ressemble plus à rien. Le Protoss n'a rien fait d'autre que poser un bâtiment au bon endroit ; le reste, tu te l'es infligé",
+          "chaque drone qui part construire un bâtiment que tu annules est un drone qui n'a pas miné et une larve dépensée pour rien. En Zerg, l'hésitation ne se paie pas en ressources, elle se paie en larves — et les larves ne reviennent pas plus vite parce qu'on a changé d'avis",
+          "le pire n'est pas de se tromper d'ouverture, c'est d'en changer trois fois. Un mauvais build exécuté proprement se rattrape ; trois bons builds mélangés, non",
+          "tu réagis à ce que tu crois voir. Le scout à 2:30 existe pour que tu n'aies pas à deviner : sans lui tu improvises, et improviser en Zerg veut dire dépenser des larves qu'on regrette"
+        ],
+
+        "context_pressure": [
+          "tu joues supply block, et en Zerg c'est doublement cher : banque pleine, trois hatcheries pleines de larves, et rien qui sort parce que l'overlord est resté dans la file. Tes injects continuent de tourner pour rien, tu perds la production ET les larves accumulées, et tu découvres plus tard que l'armée que tu croyais avoir n'a jamais existé",
+          "l'overlord est la seule unité qui ne fait rien et qu'on ne peut pas se permettre d'oublier. Un joueur correct en a toujours un dans l'œuf avant d'en avoir besoin — pas par discipline, parce qu'il a perdu assez de parties pour connaître la sensation de la larve qui attend",
+          "trente secondes de bloc à 6:00, c'est une douzaine d'unités qui n'existeront jamais. Tu ne les verras pas manquer : tu verras seulement que tu perds l'engagement de 8:00 sans comprendre pourquoi",
+          "depuis le passage à huit ouvriers de départ, la marge du début s'est réduite pour tout le monde. Ceux qui rejouent leur ancien build au supply près se bloquent là où ça passait avant — la fenêtre de contexte ne pardonne pas plus : le réglage d'hier n'est pas la marge d'aujourd'hui"
+        ],
+
+        "cache_read_ratio": [
+          "tu re-scoutes la même carte à chaque tour. L'overlord posé au bon coin te donne l'information pendant cinq minutes sans rien coûter ; celui que tu renvoies à chaque fois meurt sur un stalker en rapportant ce que tu savais déjà",
+          "le creep est de la mémoire posée sur la carte : là où il s'étend, tu vois sans regarder. Ne pas l'étendre, c'est repayer chaque information au moment où on en a besoin — c'est-à-dire toujours trop tard",
+          "tu redécouvres à 9:00 ce que ton scout t'avait dit à 3:00. Rien n'a changé entre les deux, sauf que tu as repayé le trajet et un overlord"
+        ],
+
+        "load_precision": [
+          "tu balades ton overlord sur toute la carte au lieu de poser la bonne question au bon endroit. L'overlord qui vole en diagonale vers la base adverse meurt sur un stalker et ne t'apprend rien ; le drone scout qui arrive devant la rampe te dit s'il y a un gaz, deux gaz ou une forge — et donc si tu peux droner ou si tu dois poser une spine tout de suite",
+          "une forge posée tôt et deux gaz ne racontent pas la même partie. Trois secondes de regard au bon moment valent mieux que trois overlords perdus à survoler des coins vides",
+          "le scout coûte un drone. Ce n'est pas un prix, c'est un investissement — mais seulement si tu sais ce que tu es allé chercher avant de l'envoyer"
+        ],
+
+        "harness_breadth": [
+          "ta compo est trop étroite. Tu drones tranquillement parce que ça se passe bien, tu ne scoutes pas, et à 11:00 tu entends un Battlecruiser au-dessus de ta ligne de drones. Le Terran a rush le Fusion Core, tu es full ling/roach, pas un seul Hydra, pas une spore. Drones qui fondent, et tes Hydras sortiront dans quarante secondes — il en reste quinze avant que la base soit vide",
+          "ling only contre banelings, c'est vingt unités qui disparaissent en une seconde et demie. Le problème n'est pas le ling : c'est qu'il était tout seul à répondre à toutes les questions",
+          "en Zerg, changer de compo est plus rapide qu'ailleurs — à condition d'avoir posé le bâtiment avant. La spire qu'on lance quand on voit l'air arriver produit sa première muta bien après la fin de la partie",
+          "deux spores dans la ligne de minage coûtent moins cher qu'une seule bonne raison de les regretter. Personne ne les pose parce qu'il en a besoin : on les pose parce qu'on a déjà payé pour avoir attendu"
+        ],
+
+        "verification_present": [
+          "tu n'as pas d'overseer, et le Protoss d'en face le sait. La partie est propre, tu tiens ta troisième, tu as l'avantage économique — puis tes drones commencent à tomber un par un sans que rien n'apparaisse. Deux DT dans la ligne de minage. Tu cliques, il n'y a rien à cliquer, tes lings passent au travers, et le temps que l'overseer sorte tu as perdu douze drones et la partie avec. Une tâche close sans test, c'est cette partie-là : tu ne la vois même pas se perdre",
+          "l'Oracle tourne au-dessus de tes drones depuis vingt secondes. Tu la vois, elle, mais tu n'as pas de quoi la tenir à distance, et chaque seconde te coûte un drone. Voir le problème sans pouvoir répondre, c'est l'étape juste après ne pas le voir du tout — et ça se prépare avant, pas pendant",
+          "la Banshee cloak fait le tour de ta base pendant que tu prépares ton attaque. Elle ne tue pas vite, elle tue continûment. « Ça a l'air d'aller » n'est pas une information : c'est l'absence d'information, et elle a toujours l'air rassurante",
+          "tu as gagné trois parties sans overseer cette semaine. Ça ne prouve pas qu'il est inutile, ça prouve que tu n'as pas croisé d'invisible — et cette information-là ne se rejoue pas la fois d'après"
+        ],
+
+        "tool_failure_rate": [
+          "tu A-move ta boule de lings dans les banelings, tu perds vingt unités en une seconde et demie, et tu recommences deux minutes plus tard avec la même approche. Ce n'est pas un manque d'unités, c'est un problème de cadrage : personne n'a regardé ce qu'il y avait en face avant d'appuyer sur A",
+          "attaquer dans une rampe tenue, en Zerg, c'est envoyer ses unités une par une à la place d'une par une ensemble. Le terrain fait la moitié du combat, et il ne se micro pas",
+          "deux engagements ratés au même endroit ne sont pas de la malchance. C'est le même mauvais choix, joué deux fois"
+        ],
+
+        "autonomy_ratio": [
+          "ta part de macro contre ta part de micro. Tu micro six lings dans un coin pendant quarante secondes, et pendant ce temps aucune reine n'a injecté. Quatre injects manqués, c'est une vingtaine de larves, c'est vingt unités que tu n'auras pas au moment où il en faudra vingt. Personne ne perd une partie sur un ling mal placé ; tout le monde en perd sur des injects oubliés",
+          "l'inject est le métronome du Zerg. Il ne demande pas de talent, il demande d'y revenir — et c'est exactement pour ça qu'il sépare les joueurs : ce n'est pas dur, c'est juste facile à oublier quand quelque chose de plus intéressant se passe à l'écran",
+          "tout le monde a sa partie d'anthologie où il a tenu l'intenable en pull-ant douze drones autour de ses lings. Sauf que le drone pull, c'est du micro héroïque, et le micro héroïque ne se planifie pas. Ce qui gagne les 999 autres parties, c'est ce qui tourne pendant que tu regardes ailleurs",
+          "le replay est cruel : il montre la belle bagarre que tu as gagnée, et juste à côté, 900 minerais qui dormaient pendant ce temps-là"
+        ],
+
+        "parallelism_index": [
+          "produire dans toutes les hatcheries à la fois, pas l'une après l'autre. Trois bases qui tournent en même temps, ce n'est pas trois fois plus de clics : c'est un seul groupe de contrôle et une seule décision",
+          "les larves ne s'attendent pas les unes les autres. Les faire éclore base par base, c'est s'imposer une file que le jeu ne demande pas"
+        ],
+
+        "loop_closure": [
+          "tu lances les mutas et tu regardes ailleurs. Elles ont peut-être tué huit ouvriers, elles ont peut-être fondu sur deux tourelles : tant que tu ne sais pas lequel, tu joues la suite à l'aveugle",
+          "un harass dont on ignore le résultat ne t'a rien appris et t'a coûté des unités. La moitié de l'intérêt d'un drop est dans ce qu'on voit en le faisant",
+          "arrêter parce qu'on en a assez n'est pas la même chose que s'arrêter parce que c'est fini. La première façon laisse toujours la question ouverte — et elle revient au pire moment"
+        ],
+
+        "self_correction": [
+          "renvoyer les mêmes mutas au même endroit. Elles se sont fait sortir par les tourelles au nord, alors tu les renvoies au nord. Changer d'angle, c'est passer par le sud, ou ouvrir un nydus, ou simplement arrêter le harass et prendre une quatrième base pendant qu'il défend au mauvais endroit",
+          "il a posé des spores là où tu attaques. Insister, c'est nourrir ses tourelles ; l'information utile, c'est que tout le reste de sa carte est maintenant moins bien gardé",
+          "quand la même approche échoue deux fois, le Zerg a un avantage que les autres n'ont pas : il peut changer de compo en une minute. Encore faut-il décider de le faire au lieu de relancer la même chose"
+        ],
+
+        "first_try_success": [
+          "presque rien ne passe du premier coup. Un build appris se rejoue cent fois sans hésiter ; là tu poses, tu regardes, tu reprends, et chaque aller-retour est du temps que l'autre n'a pas eu à payer",
+          "en Zerg, l'exécution propre n'est pas un luxe de perfectionniste : c'est ce qui laisse assez d'attention pour regarder la carte. Tant que le build demande à réfléchir, tu ne scoutes pas"
+        ]
+      },
+
+      "moments": {
+        "compaction_subie": [
+          "supply block avec les larves qui s'accumulent : l'overlord est arrivé après, et les injects ont tourné pour rien",
+          "la production s'est arrêtée larves pleines — le pire des blocages, celui qui gaspille ce qu'on avait déjà"
+        ],
+        "no_verification": [
+          "aucun overseer de toute la partie — et contre un Protoss, c'est une invitation",
+          "rien pour voir venir, et rien n'est venu. Le second point ne prouve rien sur le premier"
+        ]
+      },
+
+      "levels": {
+        "1": {
+          "term": "Build order",
+          "analogy": "Hatch first, pool derrière, extracteur dans la foulée, ling speed lancé, drone scout parti avant que sa deuxième base ne sorte. Chaque ligne a un timing et une raison, et la dernière dit à quoi tu sauras que ça a marché. Tu connais la sensation inverse : la partie où tu ouvres greedy sans vraiment savoir pourquoi, où tu drones parce que droner fait plaisir, et où le Protoss pose sa deuxième forge dans ton angle mort. Le cannon rush ne gagne jamais contre quelqu'un qui a un plan et qui scoute à l'heure ; il gagne contre celui qui improvisait. Un prompt sans condition de sortie, c'est cette ouverture-là.",
+          "pitfall": "Ouvrir au feeling et découvrir le plan de l'autre au moment où il te tombe dessus."
+        },
+        "2": {
+          "term": "Injects et supply",
+          "analogy": "En Zerg, l'économie ne se gère pas, elle se rythme. Les reines injectent, et entre deux injects tu poses tes overlords à l'avance et tu dépenses. Un joueur qui tient ses injects avec 40 d'APM bat un joueur qui micro magnifiquement avec 200. La fenêtre de contexte, c'est le même métronome : compacter quand tu choisis, pas quand ça bloque.",
+          "pitfall": "Découvrir le blocage au moment où plus rien ne sort. À ce stade tu as déjà perdu la minute suivante."
+        },
+        "4": {
+          "term": "Macro",
+          "analogy": "Tout le monde a sa partie d'anthologie où il a tenu l'intenable : le rush qui arrive trop tôt, tu n'as rien, tu pull tes drones, tu fais le rond autour de tes lings, tu perds la moitié de ton économie mais tu tiens — et deux minutes plus tard tu es devant. Sauf que le drone pull, c'est du micro héroïque, et le micro héroïque ne se planifie pas. Ce qui gagne les 999 autres parties, c'est ce qui tourne pendant que tu regardes ailleurs : les reines qui injectent, les drones qui repartent au gaz, la quatrième qui se pose toute seule. Laisser la boucle tourner, c'est ça — et ça ne fait pas d'aussi belles histoires.",
+          "pitfall": "Rester scotché sur la bagarre pendant que trois hatcheries ne produisent rien. On s'en souvient comme d'un exploit ; le replay montre 900 minerais en banque."
+        },
+        "5": {
+          "term": "Multi-prong et retournement",
+          "analogy": "Nydus dans la ligne de probes, mutas sur la troisième, armée qui tient le milieu : trois menaces, une seule caméra en face. Tu connais aussi le contre-rush en 2v2, celui dont tu parles encore : il envoie tout chez ton allié, tu ne défends pas, tu pars dans l'autre sens avec tes lings et tu arrives dans une base vide. Deux plans qui courent en parallèle, et c'est le sien qui s'écroule. Et tout en haut, il y a le mouv : le Protoss avance avec sa Mothership et sa death ball, la partie est pliée sur le papier — un Infestor sort du creep, Neural Parasite sur la Mothership, et c'est SON Vortex, lancé par toi, sur SA propre armée. Il n'a pas perdu sur une unité de plus : sa meilleure pièce est devenue la tienne. Orchestrer des agents, c'est viser ce niveau-là.",
+          "pitfall": "Tout envoyer en une seule boule, et renvoyer les mêmes mutas dans les mêmes tourelles en espérant que cette fois ça passe."
+        }
+      }
+    },
+
+    "terran": {
+      "name": "Terran",
+      "nemesis": "zerg",
+      "tagline": "Vu du CC : MULE, add-ons, et un mur qui tient ou qui ne tient pas.",
+      "signals": {
+        "context_pressure": [
+          "tu joues supply block avec deux réacteurs qui tournent à vide. Les Marines s'arrêtent, le dépôt arrive trois secondes trop tard, et le ling flood trouve un mur à moitié fini",
+          "le dépôt supplémentaire est la construction la moins intéressante du jeu et celle qui décide le plus de parties. Personne n'en pose assez tôt par plaisir : on en pose assez tôt parce qu'on a déjà payé pour l'oubli"
+        ],
+        "harness_breadth": [
+          "full Marine, ça gagne les dix premières minutes ; puis arrivent les banelings, et quarante Marines disparaissent en une seconde et demie parce qu'il n'y avait ni Medivac ni Tank pour changer la forme du combat",
+          "le bio sans upgrade ni soin, c'est une compo qui fait illusion tant que rien ne la teste. Le premier vrai engagement pose la question, et il n'y a qu'une réponse dans ta base"
+        ],
+        "verification_present": [
+          "pas de Raven, pas de scan gardé en réserve. Les Roaches burrow sous ton mur, tu vois ton économie tomber sans cible à cliquer, et tu dépenses tes trois scans au mauvais endroit pendant que la base d'en face triple",
+          "le scan est une vérification qui coûte un MULE. C'est exactement le bon prix : cher assez pour qu'on y réfléchisse, pas assez pour qu'on s'en prive"
+        ],
+        "autonomy_ratio": [
+          "tu micro ton escouade pendant que les MULE ne sont pas posés et que les casernes tournent à vide. Le Terran qui gagne n'est pas celui qui stim le mieux, c'est celui qui n'a jamais laissé un CC à l'arrêt",
+          "chaque MULE non posé est une poignée de minerais qui n'existera jamais. Ça ne se voit pas sur le moment, ça se voit dans l'armée qui manque au timing"
+        ]
+      }
+    },
+
+    "protoss": {
+      "name": "Protoss",
+      "nemesis": "terran",
+      "tagline": "Vu du Nexus : chrono boost, warp-in, et des unités qu'on n'a pas le droit de perdre.",
+      "signals": {
+        "context_pressure": [
+          "tu joues supply block avec le chrono en réserve : le Nexus est chargé, la Gateway est prête, et tu ne peux pas warp parce que le pylon n'est pas posé. En Protoss, chaque unité perdue coûte cher — chaque unité non produite aussi",
+          "depuis que le passage en Warpgate se paie et que le warp-in prend son temps, l'improvisation en production coûte plus qu'avant. Le pylon posé à l'avance n'est plus un confort"
+        ],
+        "harness_breadth": [
+          "full Stalker, ça blink joliment ; puis tu tombes sur du Roach/Ravager en masse et tu comprends que sans Colosse ni Sentry tu n'as aucun moyen de changer la forme d'un combat, seulement de l'accepter",
+          "une compo Protoss sans utilitaire est une compo qui subit. Les unités qui décident des engagements ne sont pas celles qui tirent le plus fort"
+        ],
+        "verification_present": [
+          "aucun Observer sur la carte. Le Terran pose ses Widow Mines sur ton chemin, tu passes dessus avec toute ton armée, et tu perds huit Adepts en un clic sans avoir jamais vu ce qui les a tués",
+          "l'Observer est l'unité la moins chère de ta compo et la seule dont l'absence se paie d'un coup, en entier"
+        ],
+        "autonomy_ratio": [
+          "tu micro tes Stalkers au blink pendant que le chrono dort et que trois Gateways attendent un ordre. Le micro Protoss est spectaculaire ; c'est la production continue qui gagne les parties",
+          "le chrono boost non dépensé est du temps qu'on jette. Il ne s'accumule pas indéfiniment, et il ne rattrape pas les minutes où on ne l'a pas utilisé"
+        ]
+      }
+    }
+  }
+}

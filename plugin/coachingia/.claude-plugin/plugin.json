@@ -1,0 +1,14 @@
+{
+  "name": "coachingia",
+  "version": "0.2.0",
+  "description": "Coach de maturite agentique : observe vos sessions, mesure votre progression sur cinq paliers, et expose un corpus de faits verifies pour les analogies.",
+  "author": {
+    "name": "Anthony"
+  },
+  "mcpServers": {
+    "coachingia-corpus": {
+      "command": "${LOCALAPPDATA}/CoachingIA/coachingia-mcp.exe",
+      "args": []
+    }
+  }
+}

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CoachingIA.Cli/CoachingIA.Cli.csproj" />
+    <Project Path="src/CoachingIA.Harness.Core/CoachingIA.Harness.Core.csproj" />
+    <Project Path="src/CoachingIA.Harness/CoachingIA.Harness.csproj" />
+    <Project Path="src/CoachingIA.Mcp/CoachingIA.Mcp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CoachingIA.Harness.Tests/CoachingIA.Harness.Tests.csproj" />
+  </Folder>
+</Solution>

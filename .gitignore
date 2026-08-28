@@ -1,0 +1,21 @@
+bin/
+obj/
+*.user
+.vs/
+.idea/
+appsettings.Development.json
+
+# Sorties du coach. Elles sont produites à partir des transcripts locaux et
+# citent des prompts réels mot pour mot — le « prompt de la semaine » les
+# affiche en clair. Le dépôt est public : elles n'y ont pas leur place.
+bilans/
+
+# Le sas des scènes générées, pas encore relues.
+lenses/propositions/
+
+# Paquets produits par installeur/package.ps1
+*.zip
+CoachingIA-portable-*/
+
+# Archives de travail, vouées à disparaître.
+_a_supprimer/

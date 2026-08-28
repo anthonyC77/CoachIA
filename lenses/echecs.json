@@ -1,0 +1,66 @@
+{
+  "id": "echecs",
+  "name": "Échecs",
+  "tagline": "Ouverture, développement, tempo : un vocabulaire ancien pour des problèmes récents.",
+
+  "levels": {
+    "1": {
+      "term": "L'ouverture",
+      "analogy": "Une ouverture n'est pas une suite de coups appris par cœur : c'est un plan annoncé. Le joueur sait où iront ses pièces et quel type de position il cherche. Un prompt fait le même travail — il dit l'intention, les contraintes, et la position qu'on veut atteindre.",
+      "pitfall": "Jouer les premiers coups sans idée directrice, puis découvrir au dixième coup qu'on ne sait pas quoi faire."
+    },
+    "2": {
+      "term": "L'espace et la pendule",
+      "analogy": "Une position encombrée de pièces qui se gênent ne vaut pas mieux qu'une position vide. Et le temps à la pendule est une ressource au même titre que le matériel. La fenêtre de contexte tient des deux : trop de choses dedans, et plus rien ne circule.",
+      "pitfall": "Accumuler sans jamais simplifier, jusqu'à ce que la position devienne illisible."
+    },
+    "3": {
+      "term": "Le développement",
+      "analogy": "On ne lance pas une attaque avec deux pièces développées. On sort ses cavaliers, ses fous, on roque, et alors seulement on cherche le jeu. Le harnais, c'est le développement : les outils en place avant d'en avoir besoin.",
+      "pitfall": "Sortir la dame trop tôt et passer le reste de la partie à la sauver."
+    },
+    "4": {
+      "term": "Le calcul de variante",
+      "analogy": "Un débutant calcule un coup. Un joueur solide calcule une variante jusqu'à une position qu'il sait évaluer, et ne s'arrête qu'à ce moment-là. Laisser la boucle tourner, c'est aller au bout de la variante au lieu de rendre la main à chaque coup.",
+      "pitfall": "S'arrêter au milieu du calcul et jouer « pour voir »."
+    },
+    "5": {
+      "term": "La double menace",
+      "analogy": "La force d'un coup vient rarement de ce qu'il attaque, mais du fait qu'il attaque deux choses à la fois. Orchestrer, c'est créer des menaces simultanées que l'adversaire ne peut pas parer d'un seul coup — et changer d'aile quand la première ne donne rien.",
+      "pitfall": "S'acharner sur une seule aile pendant que l'autre reste inutilisée."
+    }
+  },
+
+  "signals": {
+    "rework_ratio": "des coups repris, ce qui n'existe pas en partie sérieuse",
+    "has_acceptance_criteria": "une ouverture sans plan annoncé",
+    "first_try_success": "la variante a tenu jusqu'au bout",
+    "context_pressure": "la position est encombrée",
+    "cache_read_ratio": "vous recalculez la même variante à chaque coup",
+    "load_precision": "regarder tout l'échiquier plutôt que la case qui décide",
+    "harness_breadth": "vos pièces développées",
+    "verification_present": "aucune vérification avant de jouer le coup",
+    "tool_failure_rate": "des pièces perdues sans compensation",
+    "autonomy_ratio": "la profondeur de calcul avant de rendre la main",
+    "parallelism_index": "plusieurs menaces posées ensemble",
+    "loop_closure": "s'arrêter avant la position évaluable",
+    "graph_depth": "le nombre de fronts réellement ouverts",
+    "self_correction": "rejouer l'idée qui vient d'échouer"
+  },
+
+  "challenges": {
+    "has_acceptance_criteria": "Annoncez votre plan avant le premier coup : où vous allez, et à quoi vous saurez que vous y êtes.",
+    "compaction_mode": "Simplifiez avant l'encombrement. Deux allègements choisis cette semaine, aucun subi.",
+    "verification_present": "Vérifiez avant de jouer : aucune tâche close sans contrôle automatique.",
+    "loop_closure": "Calculez jusqu'à une position évaluable : trois boucles fermées sur un test vert.",
+    "self_correction": "Changez d'aile après un échec. Aucune idée rejouée à l'identique."
+  },
+
+  "moments": {
+    "rework": "le plan a été repris plusieurs fois",
+    "abandon": "la partie a été abandonnée en cours",
+    "compaction_subie": "la position s'est encombrée jusqu'au blocage",
+    "tool_failures": "plusieurs pièces perdues sur le même motif",
+    "no_verification": "aucun contrôle avant de jouer"
+  }
+}

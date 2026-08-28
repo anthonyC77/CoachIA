@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "coachingia-corpus": {
+      "command": "${LOCALAPPDATA}/CoachingIA/coachingia-mcp.exe",
+      "args": []
+    }
+  }
+}

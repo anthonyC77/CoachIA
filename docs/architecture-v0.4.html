@@ -1,0 +1,845 @@
+<title>Cinq paliers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  --paper:#F5F6F8; --surface:#FFFFFF; --surface-2:#EBEEF2; --sunk:#E3E7ED;
+  --ink:#14171E; --ink-2:#454C5A; --ink-3:#6E7686;
+  --line:#D6DBE3; --line-strong:#B9C1CD;
+  --l1:#2E7D7B; --l2:#2A6E88; --l3:#2A5B90; --l4:#334593; --l5:#452F86;
+  --signal:#C64C18;
+  --ok:#2F7A55; --warn:#8A5A0E; --crit:#B03528;
+  --shadow:0 1px 2px rgba(20,23,30,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1218; --surface:#171B23; --surface-2:#1E232D; --sunk:#12161D;
+    --ink:#E8EBF1; --ink-2:#B4BBC8; --ink-3:#838C9C;
+    --line:#2A303B; --line-strong:#3C4553;
+    --l1:#4FB3AF; --l2:#4FA2C4; --l3:#5A8AD0; --l4:#7A85E0; --l5:#A17FEA;
+    --signal:#F0793E;
+    --ok:#4EA97B; --warn:#C79237; --crit:#DE6A5C;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1218; --surface:#171B23; --surface-2:#1E232D; --sunk:#12161D;
+  --ink:#E8EBF1; --ink-2:#B4BBC8; --ink-3:#838C9C;
+  --line:#2A303B; --line-strong:#3C4553;
+  --l1:#4FB3AF; --l2:#4FA2C4; --l3:#5A8AD0; --l4:#7A85E0; --l5:#A17FEA;
+  --signal:#F0793E;
+  --ok:#4EA97B; --warn:#C79237; --crit:#DE6A5C;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  font-size:17px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 clamp(18px,4vw,44px) 96px}
+.col{max-width:65ch}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;font-weight:700;text-wrap:balance;margin:0}
+.mono,.eyebrow,code,kbd,th,.tag,.num{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+
+/* ---------- masthead ---------- */
+.masthead{padding:clamp(48px,9vw,96px) 0 clamp(32px,5vw,52px);border-bottom:1px solid var(--line)}
+.masthead h1{font-size:clamp(2.3rem,6.2vw,4rem);line-height:1.02;letter-spacing:-.025em;margin:.35em 0 .5em}
+.masthead .lede{font-size:clamp(1.05rem,2.2vw,1.3rem);color:var(--ink-2);max-width:56ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:32px}
+.meta div{display:flex;flex-direction:column;gap:2px}
+.meta span:last-child{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink)}
+
+/* ---------- sections ---------- */
+section{padding-top:clamp(48px,7vw,80px)}
+.sechead{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.sechead .num{font-size:12px;color:var(--ink-3);font-weight:600;letter-spacing:.06em}
+.sechead h2{font-size:clamp(1.4rem,3vw,1.95rem);letter-spacing:-.015em}
+p{margin:0 0 1.05em}
+h3{font-size:1.12rem;margin:2em 0 .5em;letter-spacing:-.01em}
+h4{font-size:.95rem;margin:1.4em 0 .4em}
+a{color:inherit;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
+a:hover{text-decoration-color:var(--signal)}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:2px}
+strong{font-weight:600}
+code{font-size:.86em;background:var(--surface-2);padding:.12em .38em;border-radius:3px;color:var(--ink);overflow-wrap:anywhere}
+ul,ol{margin:0 0 1.05em;padding-left:1.25em}
+li{margin-bottom:.34em}
+li::marker{color:var(--ink-3)}
+.callout{border-left:2px solid var(--signal);padding:2px 0 2px 18px;color:var(--ink-2);margin:1.6em 0;font-size:.98em}
+.callout strong{color:var(--ink)}
+hr.rule{border:0;border-top:1px solid var(--line);margin:2.6em 0}
+
+/* ---------- level cards ---------- */
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:26px 0 8px}
+.lvl{background:var(--surface);padding:22px 20px 24px;display:flex;flex-direction:column;gap:10px}
+.lvl .num{font-size:2.6rem;line-height:1;font-weight:600;letter-spacing:-.04em}
+.lvl h3{margin:0;font-size:1.16rem}
+.lvl .def{color:var(--ink-2);font-size:.95em;margin:0}
+.lvl .gate{margin-top:auto;padding-top:14px;border-top:1px dotted var(--line-strong);font-size:.85em;color:var(--ink-2);font-family:"IBM Plex Mono",monospace;line-height:1.5}
+.lvl[data-l="1"] .num{color:var(--l1)} .lvl[data-l="2"] .num{color:var(--l2)}
+.lvl[data-l="3"] .num{color:var(--l3)} .lvl[data-l="4"] .num{color:var(--l4)}
+.lvl[data-l="5"] .num{color:var(--l5)}
+.lvl.note{background:var(--sunk)}
+.lvl.note h3{color:var(--ink);margin-top:2px}
+.lvl.note .gate{border-top-color:var(--line-strong)}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface);margin:24px 0}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.9rem}
+th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+td:first-child{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:.85rem;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tr.group td{background:var(--sunk);color:var(--ink);font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.04em;text-transform:uppercase;padding:9px 16px}
+tr.group td .dot{display:inline-block;width:8px;height:8px;margin-right:9px;vertical-align:middle}
+.tnum{font-variant-numeric:tabular-nums}
+th.cw,td.cw{text-align:center;width:74px}
+td.cw{padding-top:14px}
+.ind{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid currentColor;vertical-align:-1px}
+.ind.y{background:currentColor;color:var(--ok)}
+.ind.p{background:linear-gradient(90deg,currentColor 50%,transparent 50%);color:var(--warn)}
+.ind.n{background:transparent;color:var(--ink-3)}
+.legend{font-size:.86rem;color:var(--ink-3);margin-top:-6px}
+.legend .ind{margin-right:2px}
+
+/* ---------- figures ---------- */
+figure{margin:30px 0;background:var(--surface);border:1px solid var(--line);padding:26px 22px 18px}
+figure svg{display:block;width:100%;max-width:100%;height:auto;color:var(--ink-2)}
+figcaption{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:.86rem;color:var(--ink-3);line-height:1.55}
+.svgscroll{overflow-x:auto}
+.s-fill-surface{fill:var(--surface)}
+.s-fill-sunk{fill:var(--sunk)}
+.s-stroke{stroke:var(--line-strong)}
+.s-ink{fill:var(--ink)}
+.s-ink2{fill:var(--ink-2)}
+.s-ink3{fill:var(--ink-3)}
+.s-signal{stroke:var(--signal)}
+.s-signal-f{fill:var(--signal)}
+
+/* ---------- roadmap ---------- */
+.phase{display:grid;grid-template-columns:70px 1fr;gap:0 22px;padding:20px 0;border-bottom:1px solid var(--line)}
+.phase:first-of-type{border-top:1px solid var(--line)}
+.phase .p-num{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--ink-3);padding-top:3px}
+.phase h3{margin:0 0 4px;font-size:1.06rem}
+.phase p{margin:0 0 .5em;color:var(--ink-2);font-size:.96em}
+.phase .out{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--ink-2);background:var(--surface-2);display:inline-block;padding:4px 9px;border-radius:2px}
+.phase .dur{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);display:block;margin-top:4px}
+
+/* ---------- stack ---------- */
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin:24px 0}
+.stack > div{background:var(--surface);padding:18px 18px 20px}
+.stack h4{margin:0 0 8px;font-size:.98rem}
+.stack p{margin:0;font-size:.9em;color:var(--ink-2)}
+.stack .k{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+
+/* ---------- risk ---------- */
+.risk{border:1px solid var(--line);background:var(--surface);padding:0;margin:24px 0}
+.risk > div{padding:16px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 14px;align-items:start}
+.risk > div:last-child{border-bottom:0}
+.risk .sev{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid currentColor;border-radius:2px;white-space:nowrap;margin-top:2px}
+.sev.high{color:var(--crit)} .sev.mid{color:var(--warn)} .sev.low{color:var(--ok)}
+.risk h4{margin:0 0 3px;font-size:.98rem}
+.risk p{margin:0;font-size:.92em;color:var(--ink-2)}
+
+/* ---------- code block ---------- */
+pre{background:var(--sunk);border:1px solid var(--line);padding:16px 18px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:.8rem;line-height:1.6;color:var(--ink-2);margin:20px 0}
+pre code{background:none;padding:0;font-size:inherit}
+.cmt{color:var(--ink-3)}
+
+/* ---------- footer ---------- */
+footer{margin-top:70px;padding-top:26px;border-top:1px solid var(--line);font-size:.86rem;color:var(--ink-3)}
+footer a{color:var(--ink-2)}
+footer ul{padding-left:1.1em}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">CoachingIA &middot; document d'architecture &middot; v0.4</div>
+  <h1>Cinq paliers,<br>une seule boucle</h1>
+  <p class="lede">Un coach agentique qui observe comment vous travaillez avec Claude, mesure votre maturité sur cinq paliers — prompt, contexte, harnais, boucle, graphe — et vous accompagne&nbsp;: un bilan qui cite vos vraies sessions, un défi par semaine, et une grille de notation qui se corrige quand elle se trompe.</p>
+  <div class="meta">
+    <div><span class="eyebrow">Date</span><span>23 août 2026</span></div>
+    <div><span class="eyebrow">Stack</span><span>C# / .NET · Phoenix · Plugin Claude</span></div>
+    <div><span class="eyebrow">Surfaces</span><span>VS Code + Cowork · plan Team</span></div>
+    <div><span class="eyebrow">Portée</span><span>Mono-apprenant, schéma multi</span></div>
+    <div><span class="eyebrow">Statut</span><span>v0.3 — repriorisé</span></div>
+  </div>
+</header>
+
+<section id="principe">
+  <div class="sechead"><span class="num">01</span><h2>Le principe</h2></div>
+  <div class="col">
+    <p>Un coach qui vous demande « alors, comment ça se passe ? » ne coache pas : il sonde. Un coach qui a filmé la séance sait déjà. Tout le système repose sur ce déplacement — <strong>le coach ne vous interroge pas sur votre pratique, il l'observe</strong>. Vos sessions Claude produisent déjà des traces&nbsp;: prompts soumis, outils appelés, compactions subies, sous-agents lancés, tâches terminées ou abandonnées. Ces traces sont la matière première.</p>
+    <p>Arize Phoenix n'est donc pas un tableau de bord posé à côté. C'est le substrat&nbsp;: les sessions y arrivent en OpenTelemetry, les jugements du coach y sont écrits comme <em>annotations</em>, les désaccords entre le coach et la réalité y deviennent des <em>datasets</em>, et les révisions de la grille y sont validées par des <em>experiments</em> de non-régression. Une seule base, quatre usages.</p>
+    <div class="callout"><strong>Règle de conception n°1.</strong> Aucun palier n'est noté par déclaration. Chaque signal doit être dérivable d'une trace réelle — un attribut OpenTelemetry, un événement de hook, une différence entre deux spans. Si un critère pédagogique n'a pas de source mesurable, il ne rentre pas dans la grille&nbsp;; il reste du contenu de skill.</div>
+    <div class="callout"><strong>Règle de conception n°2</strong> <em>(ajoutée en v0.3)</em><strong>.</strong> Mesurer n'est pas accompagner. Chaque sortie du coach doit franchir trois filtres&nbsp;: cite-t-elle une session réelle&nbsp;? arrive-t-elle au bon moment&nbsp;? propose-t-elle un geste vérifiable&nbsp;? Un score qui ne passe pas ces trois filtres est un tableau de bord — et les tableaux de bord meurent en deux semaines.</div>
+    <p>Et le coach lui-même doit franchir les cinq paliers qu'il enseigne. Un coach du palier 5 qui serait bloqué au palier 2 dans sa propre implémentation serait une contradiction pédagogique. C'est pourquoi la boucle d'auto-apprentissage (section 09) n'est pas un bonus de fin de roadmap&nbsp;: c'est la démonstration.</p>
+  </div>
+</section>
+
+<section id="surfaces">
+  <div class="sechead"><span class="num">02</span><h2>D'où viennent les données</h2></div>
+  <div class="col">
+    <p>La v0.2 faisait des hooks HTTP la source principale. C'était une erreur de priorité, corrigée ici&nbsp;: Claude Code dépose déjà <strong>l'intégralité de chaque session</strong> en JSONL sous <code>~/.claude/projects/</code> — y compris tout votre historique passé. Ces transcripts deviennent la source de vérité, parcourus en lot par le harnais&nbsp;; les hooks restent, mais comme complément temps réel, en meilleur effort.</p>
+    <p>Cette inversion règle trois faiblesses d'un coup. <strong>Le démarrage à froid</strong>&nbsp;: au premier lancement, le coach analyse rétroactivement des semaines de sessions existantes, au lieu de rester muet vingt sessions durant. <strong>La robustesse</strong>&nbsp;: un harnais arrêté ne perd plus rien — il rattrape au prochain passage, là où un hook manqué était perdu pour toujours. <strong>Le fond</strong>&nbsp;: les transcripts portent le texte complet des échanges, ce qu'il faut pour des bilans qui citent vos vraies sessions plutôt que des moyennes.</p>
+  </div>
+
+  <figure>
+    <div class="svgscroll">
+    <svg viewBox="0 0 940 330" role="img" aria-label="Deux sources alimentent le même harnais : les transcripts JSONL, parcourus en lot et rétroactivement — la source de vérité —, et les hooks HTTP en temps réel, en meilleur effort. Cowork, dont les transcripts restent dans le cloud, passera plus tard par l'application desktop." font-family="'IBM Plex Mono', ui-monospace, monospace">
+      <defs>
+        <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="a0s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" class="s-signal-f"/>
+        </marker>
+      </defs>
+
+      <rect x="15" y="25" width="185" height="78" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="107" y="53" text-anchor="middle" font-size="13" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">Session Claude Code</text>
+      <text x="107" y="72" text-anchor="middle" font-size="10" class="s-ink3">VS Code &middot; extension</text>
+      <text x="107" y="88" text-anchor="middle" font-size="10" class="s-ink3">plugin coachingia</text>
+
+      <rect x="15" y="160" width="185" height="86" class="s-fill-surface s-signal" stroke-width="1.6"/>
+      <text x="107" y="188" text-anchor="middle" font-size="12" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">~/.claude/projects/</text>
+      <text x="107" y="207" text-anchor="middle" font-size="10" class="s-ink2">transcripts JSONL</text>
+      <text x="107" y="223" text-anchor="middle" font-size="10" class="s-signal-f">l'historique complet,</text>
+      <text x="107" y="237" text-anchor="middle" font-size="10" class="s-signal-f">pass&eacute; compris</text>
+
+      <path d="M107,103 L107,156" fill="none" stroke="currentColor" stroke-width="1.2" marker-end="url(#a0)"/>
+      <text x="120" y="133" font-size="9.5" class="s-ink3">&eacute;crit chaque tour</text>
+
+      <rect x="400" y="70" width="200" height="176" class="s-fill-surface s-stroke" stroke-width="1.6"/>
+      <text x="500" y="98" text-anchor="middle" font-size="13" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">CoachingIA.Harness</text>
+      <text x="500" y="114" text-anchor="middle" font-size="9.5" class="s-ink3">sur votre poste &middot; C#</text>
+      <line x1="422" y1="126" x2="578" y2="126" class="s-stroke" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="500" y="146" text-anchor="middle" font-size="11" class="s-ink2">TranscriptReader (lot)</text>
+      <text x="500" y="165" text-anchor="middle" font-size="11" class="s-ink2">hooks HTTP (direct)</text>
+      <text x="500" y="184" text-anchor="middle" font-size="11" class="s-ink2">segmentation en t&acirc;ches</text>
+      <text x="500" y="203" text-anchor="middle" font-size="11" class="s-ink2">spans OpenInference</text>
+      <text x="500" y="222" text-anchor="middle" font-size="11" class="s-ink2">bilan &middot; d&eacute;fi &middot; MCP</text>
+
+      <path d="M204,203 L396,203" fill="none" class="s-signal" stroke-width="2" marker-end="url(#a0s)"/>
+      <text x="300" y="185" text-anchor="middle" font-size="10" class="s-signal-f">parseur — lot, rattrapage,</text>
+      <text x="300" y="198" text-anchor="middle" font-size="10" class="s-signal-f">r&eacute;troactif &middot; source de v&eacute;rit&eacute;</text>
+
+      <path d="M204,64 L500,64 L500,66" fill="none" stroke="currentColor" stroke-width="1.1" marker-end="url(#a0)"/>
+      <text x="330" y="50" text-anchor="middle" font-size="10" class="s-ink3">hooks HTTP — temps r&eacute;el, meilleur effort</text>
+
+      <rect x="770" y="110" width="150" height="96" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="845" y="145" text-anchor="middle" font-size="13" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">Phoenix</text>
+      <text x="845" y="164" text-anchor="middle" font-size="10" class="s-ink3">docker &middot; 6006 / 4317</text>
+      <text x="845" y="180" text-anchor="middle" font-size="10" class="s-ink3">traces &middot; annotations</text>
+
+      <line x1="604" y1="158" x2="766" y2="158" stroke="currentColor" stroke-width="1.4" marker-end="url(#a0)"/>
+      <text x="685" y="143" text-anchor="middle" font-size="10" class="s-ink2">OTLP gRPC :4317</text>
+
+      <rect x="400" y="278" width="200" height="42" class="s-fill-sunk s-stroke" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="500" y="296" text-anchor="middle" font-size="10.5" class="s-ink2">Cowork (cloud) — via l'app desktop</text>
+      <text x="500" y="311" text-anchor="middle" font-size="9.5" class="s-ink3">transcripts hors de port&eacute;e &middot; phase 07</text>
+      <path d="M500,276 L500,250" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#a0)"/>
+    </svg>
+    </div>
+    <figcaption>Le trait plein orange est la voie qui compte&nbsp;: les transcripts, parcourus en lot, rejoués rétroactivement, tolérants aux pannes. Les hooks n'apportent que ce que le lot ne peut pas donner — l'instant. Les sessions Cowork, elles, écrivent leurs transcripts dans le cloud, hors de portée du parseur&nbsp;: leur voie passe par l'application desktop et reste en fin de roadmap.</figcaption>
+  </figure>
+
+  <div class="col">
+    <h3>Ce que chaque source sait faire</h3>
+    <p>Le parseur couvre l'essentiel des vingt-six signaux&nbsp;: les transcripts contiennent les prompts, les appels d'outils et leurs résultats, les sous-agents, les tours. Les hooks gardent trois exclusivités&nbsp;: <strong>l'instant</strong> (le moment opportun de la section 06 exige de réagir à la fin du tour, pas le lendemain), la <strong>compaction</strong> (<code>PreCompact</code>/<code>PostCompact</code> ne laissent pas de trace exploitable dans le JSONL) et la <strong>friction de permission</strong>.</p>
+    <div class="callout"><strong>Une bonne surprise de la phase&nbsp;00.</strong> Chaque appel au modèle emporte son bloc <code>usage</code> dans le transcript — <code>input_tokens</code>, <code>cache_read_input_tokens</code>, <code>cache_creation_input_tokens</code>, <code>output_tokens</code>. Les signaux <code>context_pressure</code> et <code>cache_read_ratio</code>, que la v0.2 croyait réservés à la télémétrie OpenTelemetry native, se lisent donc directement dans le lot. Une dépendance entière disparaît de la voie principale&nbsp;; il ne reste hors de portée que le <strong>coût</strong>, qui vient de l'export de dépense de l'organisation plutôt que d'une grille de prix recopiée à la main — laquelle serait fausse au premier changement de tarif.</div>
+    <div class="callout"><strong>Une troisième source, pour l'équipe.</strong> L'API d'analytics par utilisateur est réservée à Enterprise&nbsp;: sur Teams, rien ne se collecte automatiquement à l'échelle de l'organisation. Mais l'<strong>export de dépense</strong> existe — Réglages → Analytics → «&nbsp;Combien Claude nous coûte&nbsp;» — et donne, par personne et par modèle&nbsp;: le produit, le nombre de requêtes, les jetons d'entrée et de sortie, la dépense estimée. Manuel, décalé d'un jour, mais il couvre tout le monde sans rien installer sur les postes. C'est la source de la vue d'équipe (section&nbsp;07)&nbsp;; les transcripts restent celle de l'individu.</div>
+    <div class="callout"><strong>Le prix de cette inversion.</strong> Le format des transcripts est interne&nbsp;: non documenté comme contrat, il peut changer avec les versions de Claude Code. Le parseur est donc tolérant — champ inconnu ignoré, ligne illisible sautée <em>et comptée</em>, pour que la dérive se voie. <em>Mesuré depuis&nbsp;:</em> sur un transcript réel de 11&nbsp;Mo couvrant trois versions de Claude Code, 1&nbsp;217 lignes lues, zéro illisible, tous les champs critiques présents. Le risque reste réel mais il est instrumenté, et il est moindre que l'alternative&nbsp;: des hooks tout aussi non-contractuels, et sans mémoire.</div>
+  </div>
+</section>
+
+<section id="paliers">
+  <div class="sechead"><span class="num">03</span><h2>Les cinq paliers</h2></div>
+  <div class="col">
+    <p>Chaque palier est un vecteur de quatre à six signaux normalisés entre 0 et 1. Le palier n'est pas « atteint » sur une bonne session — il est acquis quand la <strong>médiane glissante sur cinq sessions</strong> dépasse le seuil. On mesure une habitude, pas un coup de chance.</p>
+  </div>
+
+  <div class="levels">
+    <div class="lvl" data-l="1">
+      <span class="num tnum">01</span>
+      <h3>Prompt</h3>
+      <p class="def">Savoir formuler une intention que le modèle peut exécuter sans deviner&nbsp;: objectif, contraintes, format de sortie, critère d'acceptation.</p>
+      <p class="gate">Acquis&nbsp;: taux de reprise&nbsp;&lt;&nbsp;0,3<br>et clarté médiane&nbsp;≥&nbsp;0,7</p>
+    </div>
+    <div class="lvl" data-l="2">
+      <span class="num tnum">02</span>
+      <h3>Contexte</h3>
+      <p class="def">Traiter la fenêtre comme une ressource rare&nbsp;: charger le juste nécessaire, compacter avant d'être compacté, isoler ce qui est jetable.</p>
+      <p class="gate">Acquis&nbsp;: compaction pilotée&nbsp;&gt;&nbsp;70&nbsp;%<br>et cache_read&nbsp;≥&nbsp;0,5</p>
+    </div>
+    <div class="lvl" data-l="3">
+      <span class="num tnum">03</span>
+      <h3>Harnais</h3>
+      <p class="def">Équiper l'agent plutôt que le corriger&nbsp;: skills, sous-agents, serveurs MCP, hooks, et surtout une vérification automatique.</p>
+      <p class="gate">Acquis&nbsp;: vérification présente<br>et échec outil&nbsp;&lt;&nbsp;0,15</p>
+    </div>
+    <div class="lvl" data-l="4">
+      <span class="num tnum">04</span>
+      <h3>Boucle</h3>
+      <p class="def">Laisser l'agent tourner&nbsp;: décomposer, paralléliser l'indépendant, et fermer la boucle sur un critère vérifiable plutôt que sur un « stop » humain.</p>
+      <p class="gate">Acquis&nbsp;: autonomie&nbsp;≥&nbsp;8&nbsp;outils/tour<br>et clôture vérifiée&nbsp;&gt;&nbsp;0,6</p>
+    </div>
+    <div class="lvl" data-l="5">
+      <span class="num tnum">05</span>
+      <h3>Graphe</h3>
+      <p class="def">Orchestrer des agents spécialisés qui se passent le relais — et qui rejouent autrement, pas à l'identique, quand un nœud échoue.</p>
+      <p class="gate">Acquis&nbsp;: auto-correction&nbsp;&gt;&nbsp;0,5<br>et récidive&nbsp;&lt;&nbsp;0,2</p>
+    </div>
+    <div class="lvl note">
+      <span class="eyebrow">Règle transverse</span>
+      <h3>Cumulativité</h3>
+      <p class="def">Un palier ne compte que si les précédents tiennent encore. Orchestrer des graphes d'agents en écrivant des prompts flous ne fait pas de vous un praticien du palier&nbsp;5.</p>
+      <p class="gate">Un palier acquis<br>peut être perdu.</p>
+    </div>
+  </div>
+</section>
+
+<section id="signaux">
+  <div class="sechead"><span class="num">04</span><h2>D'où viennent les signaux</h2></div>
+  <div class="col">
+    <p>Le tableau ci-dessous est le contrat entre la pédagogie et la télémétrie. Colonne de gauche&nbsp;: le nom du signal tel qu'il apparaîtra dans Phoenix. Colonne du milieu&nbsp;: sa source exacte — un événement de session (lu dans les transcripts, ou reçu par hook pour le temps réel), un attribut OpenInference, ou un calcul dérivé. Colonne de droite&nbsp;: ce qu'il révèle réellement, qui est rarement ce que son nom suggère.</p>
+    <p>Seuls quatre signaux sur vingt-six passent par un juge LLM (marqués <code>LLM</code>). Les autres sont du comptage. C'est délibéré&nbsp;: un juge coûte des tokens, dérive dans le temps et doit lui-même être évalué. On ne l'emploie que là où aucun compteur ne peut répondre.</p>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Signal</th><th>Source</th><th>Ce que ça révèle</th><th class="cw">Cowork</th></tr></thead>
+    <tbody>
+      <tr class="group"><td colspan="4"><span class="dot" style="background:var(--l1)"></span>Palier 01 — Prompt</td></tr>
+      <tr><td>prompt_clarity <code>LLM</code></td><td>hook <code>UserPromptSubmit</code> → juge sur rubrique</td><td>Objectif, contraintes et format sont-ils explicites, ou faut-il deviner&nbsp;?</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>has_acceptance_criteria</td><td>juge, label booléen</td><td>La demande contient-elle de quoi savoir qu'elle est satisfaite&nbsp;?</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>rework_ratio</td><td>prompts correctifs consécutifs / objectif</td><td>Le signal le plus honnête&nbsp;: un bon prompt ne se répare pas trois fois.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>prompts_per_task</td><td><code>UserPromptSubmit</code> ÷ <code>TaskCompleted</code></td><td>Coût conversationnel d'une tâche aboutie.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>first_try_success</td><td>tâche close sans prompt correctif</td><td>Proportion d'intentions transmises du premier coup.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+
+      <tr class="group"><td colspan="4"><span class="dot" style="background:var(--l2)"></span>Palier 02 — Contexte</td></tr>
+      <tr><td>context_pressure</td><td>max <code>llm.token_count.prompt</code> / limite</td><td>À quel point on frôle le mur avant d'agir.</td><td class="cw"><span class="ind n" role="img" aria-label="hors de portée dans Cowork"></span></td></tr>
+      <tr><td>compaction_mode</td><td>hooks <code>PreCompact</code> / <code>PostCompact</code></td><td>Compaction <em>subie</em> (déclenchée par saturation) ou <em>pilotée</em> (choisie, avec consignes).</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>cache_read_ratio</td><td><code>prompt_details.cache_read</code> ÷ prompt</td><td>Discipline de stabilité du préfixe&nbsp;: on ne réécrit pas le début à chaque tour.</td><td class="cw"><span class="ind n" role="img" aria-label="hors de portée dans Cowork"></span></td></tr>
+      <tr><td>load_precision</td><td><code>Read</code> sans offset ÷ (<code>Read</code> + <code>Grep</code>)</td><td>Aspirer un fichier entier, ou aller chercher les douze lignes utiles.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>context_isolation</td><td><code>SubagentStart</code> par session</td><td>Usage de contextes jetables pour l'exploration sale.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+
+      <tr class="group"><td colspan="4"><span class="dot" style="background:var(--l3)"></span>Palier 03 — Harnais</td></tr>
+      <tr><td>harness_breadth</td><td>types d'outils distincts par session</td><td>Skill, sous-agent, MCP, hook — ou uniquement Bash et Edit.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>skill_usage_rate</td><td><code>claude_code.tool_result</code>, outil <code>Skill</code></td><td>Le savoir-faire est-il capitalisé, ou réexpliqué à chaque fois&nbsp;?</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>mcp_utilization</td><td>outils <code>mcp__*</code> ÷ total</td><td>Connexion au système d'information réel plutôt qu'au copier-coller.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>tool_failure_rate</td><td><code>PostToolUseFailure</code> ÷ <code>PostToolUse</code></td><td>Un harnais mal calibré se voit à ses échecs répétés.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>permission_friction</td><td><code>claude_code.tool_decision</code> = reject</td><td>Nombre de fois où l'humain doit intervenir pour débloquer.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>verification_present</td><td>test / lint / build dans la session</td><td>Le signal charnière du palier&nbsp;: sans vérification, pas de boucle possible.</td><td class="cw"><span class="ind p" role="img" aria-label="dégradé dans Cowork"></span></td></tr>
+
+      <tr class="group"><td colspan="4"><span class="dot" style="background:var(--l4)"></span>Palier 04 — Boucle</td></tr>
+      <tr><td>autonomy_ratio</td><td>appels d'outils ÷ tours humains</td><td>La métrique reine&nbsp;: combien de terrain l'agent couvre seul.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>plan_structure</td><td><code>TaskCreated</code> avant premier <code>Edit</code></td><td>Décomposition explicite, ou improvisation.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>parallelism_index</td><td><code>PostToolBatch</code> avec n &gt; 1</td><td>Savoir lancer ensemble ce qui est indépendant.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>loop_closure <code>LLM</code></td><td><code>Stop</code> + <code>stop_reason</code> + dernier outil</td><td>La boucle se termine-t-elle sur un test vert ou sur un abandon&nbsp;?</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>cost_per_task</td><td><code>claude_code.cost.usage</code> ÷ tâches closes</td><td>L'autonomie sans mesure de coût est une fuite.</td><td class="cw"><span class="ind n" role="img" aria-label="hors de portée dans Cowork"></span></td></tr>
+
+      <tr class="group"><td colspan="4"><span class="dot" style="background:var(--l5)"></span>Palier 05 — Graphe</td></tr>
+      <tr><td>graph_depth</td><td><code>graph.node.parent_id</code>, spans AGENT</td><td>Profondeur réelle d'orchestration, pas nombre d'agents déclarés.</td><td class="cw"><span class="ind p" role="img" aria-label="dégradé dans Cowork"></span></td></tr>
+      <tr><td>node_specialization <code>LLM</code></td><td>prompts des sous-agents comparés</td><td>Des rôles distincts, ou cinq clones du même agent généraliste.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>handoff_success</td><td>échec du nœud aval après passation</td><td>Le contexte transmis suffisait-il au suivant pour travailler&nbsp;?</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>self_correction</td><td>rejeu d'un nœud avec stratégie différente</td><td>Rejouer à l'identique n'est pas corriger&nbsp;: c'est espérer.</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+      <tr><td>recurrence <code>LLM</code></td><td>erreurs de la session N vs sessions N−5..N−1</td><td>Le système apprend-il, ou répète-t-il ses échecs&nbsp;?</td><td class="cw"><span class="ind y" role="img" aria-label="mesurable dans Cowork"></span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="col">
+    <p class="legend"><span class="ind y"></span> mesurable dans Cowork &nbsp;&middot;&nbsp; <span class="ind p"></span> dégradé ou approximé &nbsp;&middot;&nbsp; <span class="ind n"></span> hors de portée. La voie Cowork (phase&nbsp;07) reposera sur les hooks de plugin et l'app desktop&nbsp;: ses transcripts restent dans le cloud, hors de portée du parseur. Ces valeurs restent donc à confirmer le moment venu.</p>
+    <div class="callout"><strong>La tâche n'existe pas dans les traces</strong> <em>(constat v0.3)</em><strong>.</strong> La télémétrie parle en sessions et en tours&nbsp;; le graphe, le bilan et les défis parlent en tâches. Entre les deux il faut une <strong>segmentation</strong>&nbsp;: heuristique d'abord (un nouveau prompt non correctif ouvre une tâche, les événements <code>TaskCreated</code>/<code>TaskCompleted</code> font foi quand ils existent), juge LLM ensuite pour les cas ambigus. C'est le pari algorithmique du projet — il se valide en phase&nbsp;01, sur votre historique réel, pas sur des exemples.</div>
+    <div class="callout"><strong>Heuristiques d'abord, juge ensuite.</strong> Les quatre signaux marqués <code>LLM</code> démarrent en heuristiques de code (mots correctifs pour <code>rework_ratio</code>, dernier outil vert pour <code>loop_closure</code>), validées à la main sur vos sessions. Le juge LLM n'est promu que là où l'heuristique se trompe de façon mesurée. Et il manque encore à ce tableau un signal d'<strong>issue réelle</strong> — temps humain par tâche livrée, lien avec les commits — sans lequel tous les autres restent des proxys, et les proxys se gament.</div>
+    <div class="callout"><strong>Note sur <code>recurrence</code>.</strong> C'est le signal terminal de tout l'édifice&nbsp;: il mesure exactement ce que le projet ambitionne. Il est aussi le seul qui exige une mémoire entre sessions — d'où le stockage local (section 10) plutôt qu'un simple flux vers Phoenix.</div>
+  </div>
+</section>
+
+<section id="score">
+  <div class="sechead"><span class="num">05</span><h2>Comment le palier se calcule</h2></div>
+  <div class="col">
+    <p>Chaque signal est normalisé entre 0 et 1 par une fonction propre — certaines croissantes (<code>autonomy_ratio</code>), d'autres décroissantes (<code>tool_failure_rate</code>), avec des bornes fixées à partir de vos vingt premières sessions plutôt que d'un idéal théorique. Le score de palier est la moyenne pondérée de ses signaux, calculée sur une <strong>fenêtre glissante de cinq sessions</strong>, en médiane.</p>
+    <p>Trois règles gouvernent la progression, et ce sont elles qui font la différence entre un score et un coaching&nbsp;:</p>
+    <ol>
+      <li><strong>Cumulativité.</strong> Le palier <em>n</em> ne peut être validé que si les paliers 1 à <em>n</em>−1 sont toujours au-dessus de leur seuil. Construire des graphes d'agents en écrivant des prompts flous ne fait pas de vous un praticien du palier 5&nbsp;— cela fait de vous quelqu'un qui a des problèmes coûteux au palier 1.</li>
+      <li><strong>Régression visible.</strong> Un palier acquis peut être perdu. Le coach le signale immédiatement plutôt qu'en fin de mois, parce qu'une régression fraîche est explicable&nbsp;: on se souvient encore de la session.</li>
+      <li><strong>Un seul objectif à la fois.</strong> Le coach n'expose jamais plus d'une recommandation active — celle du plus bas palier non acquis. Les quatre autres sont calculées mais tues. Un tableau de bord qui clignote partout ne change aucun comportement.</li>
+    </ol>
+    <div class="callout"><strong>Anti-Goodhart.</strong> Dès qu'une métrique devient un objectif, elle cesse d'être une bonne métrique. Deux garde-fous&nbsp;: les seuils ne sont pas affichés avant qu'un palier soit atteint, et <code>cost_per_task</code> plafonne mécaniquement les optimisations absurdes (gonfler <code>autonomy_ratio</code> en laissant l'agent brûler des tokens fait chuter le palier&nbsp;4 dans son ensemble).</div>
+  </div>
+</section>
+
+<section id="accompagnement">
+  <div class="sechead"><span class="num">06</span><h2>L'accompagnement</h2></div>
+  <div class="col">
+    <p>C'est la section que la v0.2 n'avait pas, et son absence était la principale faiblesse du projet&nbsp;: un système qui note sans enseigner ne fait pas progresser — il fait culpabiliser. Le coach parle par trois canaux, chacun avec sa cadence et sa règle de retenue.</p>
+
+    <h3>Le rituel du lundi</h3>
+    <p>Une tâche planifiée produit chaque lundi le bilan de la semaine&nbsp;: <strong>trois observations qui citent vos vraies sessions</strong> — le prompt réel, la reprise réelle, la reformulation qui aurait suffi —, <strong>une réussite</strong> (ce qui s'est amélioré depuis quinze jours, nommé précisément), et <strong>un défi</strong> pour la semaine qui vient. Jamais de moyenne sans exemple&nbsp;: une observation qui ne cite pas une session précise ne sort pas.</p>
+
+    <h3>Le défi&nbsp;: l'exercice délibéré</h3>
+    <p>Le défi est le cœur de l'accompagnement. Il vise le signal le plus faible du plus bas palier non acquis, il est concret, et son critère de réussite est <strong>vérifiable dans les traces</strong> — le bilan suivant commence par le verdict. Un seul défi actif à la fois.</p>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Palier</th><th>Exemple de défi</th><th>Vérifié par</th></tr></thead>
+    <tbody>
+      <tr><td>1 · Prompt</td><td>Trois tâches d'affilée lancées avec un critère d'acceptation explicite.</td><td><code>has_acceptance_criteria</code> puis <code>first_try_success</code> sur ces tâches</td></tr>
+      <tr><td>2 · Contexte</td><td>Deux compactions pilotées avant saturation, avec consignes de ce qu'il faut garder.</td><td><code>compaction_mode</code></td></tr>
+      <tr><td>3 · Harnais</td><td>Chaque tâche de la semaine se termine par une vérification automatique, pas une relecture.</td><td><code>verification_present</code></td></tr>
+      <tr><td>4 · Boucle</td><td>Fermer trois boucles sur un test vert plutôt que sur votre propre «&nbsp;stop&nbsp;».</td><td><code>loop_closure</code></td></tr>
+      <tr><td>5 · Graphe</td><td>Un nœud qui échoue est rejoué avec une stratégie différente, jamais à l'identique.</td><td><code>self_correction</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="col">
+    <h3>Le moment opportun</h3>
+    <p>Un bilan hebdomadaire arrive toujours trop tard pour la session d'hier. Le hook <code>Stop</code> détecte une session notable — trois reprises, un abandon, des échecs d'outil en série — et prépare une observation <strong>d'une ligne</strong>, glissée au prochain <code>SessionStart</code>&nbsp;: «&nbsp;Hier, la tâche sur <code>SpanFactory</code> a demandé quatre reprises&nbsp;; un critère d'acceptation dans le premier prompt aurait probablement suffi.&nbsp;» Une par jour au maximum, jamais pendant un tour de travail, et le canal entier se coupe d'une ligne de configuration.</p>
+
+    <h3>Le curriculum</h3>
+    <p>Les cinq skills de palier cessent d'être des cases dans un schéma. Chaque leçon déclare les signaux qu'elle vise — ce qui rend son effet <strong>mesurable</strong>&nbsp;: si les signaux d'une leçon ne bougent pas chez ceux qui l'ont suivie, c'est la leçon qu'on réécrit, pas l'apprenant qu'on blâme. La boucle d'auto-apprentissage de la section 09 s'applique donc au contenu pédagogique autant qu'aux rubriques de notation.</p>
+
+    <div class="callout"><strong>Règles de retenue.</strong> Un seul défi actif&nbsp;; le bilan commence toujours par ce qui a progressé&nbsp;; le coach ne parle jamais pendant que vous travaillez&nbsp;; chaque canal est désactivable indépendamment. Un coach envahissant est désinstallé — et il aura raison de l'être.</div>
+  </div>
+</section>
+
+<section id="usage">
+  <div class="sechead"><span class="num">07</span><h2>L'usage et le siège</h2></div>
+  <div class="col">
+    <p>Jusqu'ici le coach mesure une <em>manière</em> de travailler. Cette section mesure autre chose&nbsp;: le rapport entre ce que l'abonnement offre et ce qui en est réellement utilisé. Sur un plan au siège, la capacité non consommée d'une semaine ne se reporte pas — elle est perdue. Quelqu'un à 50&nbsp;% de son enveloppe paie plein tarif pour la moitié de l'outil, et personne ne le voit tant que personne ne le mesure.</p>
+    <p>C'est un problème d'accompagnement avant d'être un problème de facturation. Un siège sous-utilisé ne signale pas un siège de trop&nbsp;: le plus souvent il signale quelqu'un qui n'a pas été formé, qui a buté sur un refus de permission et n'est jamais revenu, ou qui n'a jamais su ce que l'outil savait faire.</p>
+    <div class="callout"><strong>Aucun plafond n'est codé en dur.</strong> Les limites réelles ne sont pas publiées et changent. L'enveloppe hebdomadaire est une <em>valeur de référence</em> que l'apprenant renseigne d'après ce que <code>/usage</code> lui montre. Sans elle, les tendances et les écarts d'une semaine à l'autre restent lisibles&nbsp;; seuls les pourcentages d'enveloppe disparaissent. Inventer un plafond aurait produit des alertes fausses avec l'assurance des vraies.</div>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Indicateur</th><th>Ce qu'il révèle</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>jetons lus / semaine</td><td>La consommation réelle, cache compris — c'est elle qui pèse sur l'enveloppe.</td><td>transcripts</td></tr>
+      <tr><td>part de l'enveloppe</td><td>Ce qui est utilisé, donc ce qui est perdu. Le chiffre qui déclenche la conversation.</td><td>dérivé</td></tr>
+      <tr><td>jours actifs</td><td>L'adoption se joue sur la régularité, pas sur le volume. Un seul jour actif par semaine est un signal plus fort qu'un compteur bas.</td><td>transcripts</td></tr>
+      <tr><td>taux de cache</td><td>Un cache effondré fait repayer le même contexte à chaque tour&nbsp;: du quota gaspillé sans rien produire.</td><td>transcripts</td></tr>
+      <tr><td>part par famille de modèle</td><td>En jetons <em>et</em> en appels. Beaucoup d'appels Haiku pour peu de jetons est un usage sain du modèle léger&nbsp;; peu d'appels Opus pour l'essentiel des jetons est l'inverse.</td><td>transcripts</td></tr>
+      <tr><td>type de travail</td><td>Orchestration, édition, exécution, recherche, exploration, conversation. Répond à «&nbsp;j'utilise l'outil pour produire, ou pour lire&nbsp;?&nbsp;»</td><td>dérivé des outils</td></tr>
+      <tr><td>jetons par tâche aboutie</td><td>L'efficacité réelle. L'autonomie sans cette mesure n'est qu'une fuite bien racontée.</td><td>dérivé</td></tr>
+      <tr><td>dépense estimée</td><td>Le seul chiffre monétaire fiable&nbsp;: il vient de l'export, pas d'une grille de prix recopiée à la main.</td><td>export de dépense</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="col">
+    <h3>Deux vues, deux sources</h3>
+    <p>La <strong>vue individuelle</strong> se lit dans les transcripts, en local, sans rien demander à personne&nbsp;: immédiate, détaillée, et elle couvre les semaines antérieures à l'installation. La <strong>vue d'équipe</strong> passe par l'export de dépense de l'organisation&nbsp;: manuel, décalé d'un jour, mais il couvre tout le monde sans rien installer sur les postes, et il voit aussi bien Chat que Claude Code ou Cowork.</p>
+    <p>Les deux se recoupent volontairement. Quand une personne apparaît sous-utilisée dans l'export, sa propre carte hebdomadaire — produite en local, sans aucun texte de prompt — dit <em>pourquoi</em>&nbsp;: un seul jour actif, des tâches uniquement exploratoires, un cache effondré. C'est la différence entre «&nbsp;Karim consomme peu&nbsp;» et «&nbsp;Karim n'a utilisé Claude qu'un mardi, pour lire du code&nbsp;».</p>
+
+    <h3>Les alertes, et leur retenue</h3>
+    <p>Six alertes seulement, chacune attachée à une décision&nbsp;: deux semaines consécutives sous la moitié de l'enveloppe, enveloppe presque épuisée en milieu de semaine, un seul jour actif, cache effondré, monoculture de modèle, usage divisé par deux d'une semaine à l'autre.</p>
+    <p>Deux règles les rendent crédibles. <strong>La semaine en cours n'en déclenche jamais aucune</strong> — elle est incomplète, et la comparer à une enveloppe pleine produirait une fausse alerte chaque lundi matin. Et <strong>une semaine basse ne suffit pas</strong>&nbsp;: il en faut deux de suite, parce qu'un creux n'est pas une tendance et qu'une alerte injustifiée coûte plus cher que l'information qu'elle apporte.</p>
+    <div class="callout"><strong>Ce qui n'est pas mesuré, et ne le sera pas.</strong> Ni classement entre personnes, ni objectif de consommation. Un indicateur d'usage transformé en objectif produit exactement ce qu'on ne veut pas&nbsp;: des sessions ouvertes pour faire du chiffre. La sous-utilisation ouvre une conversation&nbsp;; elle ne note personne.</div>
+  </div>
+</section>
+
+<section id="archi">
+  <div class="sechead"><span class="num">08</span><h2>Architecture</h2></div>
+  <div class="col">
+    <p>Trois processus tournent sur votre machine, et rien ne sort du poste. Le plugin est la surface de contact, le service C# est le cerveau, Phoenix est la mémoire et l'écran de contrôle. Le schéma ci-dessous montre le circuit de restitution&nbsp;; la collecte, elle, suit les deux sources de la section&nbsp;02 — transcripts en lot, hooks en direct.</p>
+    <p>Deux détails techniques rendent l'ensemble possible en C# plutôt qu'en Python&nbsp;: les transcripts sont de simples fichiers JSONL, lisibles par n'importe quel parseur tolérant, et les hooks Claude Code savent poster en HTTP sur <code>http://localhost:8080/hooks/…</code> sans script intermédiaire. Rien dans la chaîne n'exige l'écosystème Python.</p>
+  </div>
+
+  <figure>
+    <div class="svgscroll">
+    <svg viewBox="0 0 900 260" role="img" aria-label="Circuit d'observation : la session Claude envoie ses hooks HTTP au service C#, qui écrit des spans OpenInference dans Phoenix en OTLP ; en retour le service relit Phoenix en REST et restitue le diagnostic à la session via des outils MCP." font-family="'IBM Plex Mono', ui-monospace, monospace">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="a1s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" class="s-signal-f"/>
+        </marker>
+      </defs>
+
+      <rect x="20" y="60" width="190" height="160" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="115" y="89" text-anchor="middle" font-size="13" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">Session Claude</text>
+      <text x="115" y="105" text-anchor="middle" font-size="9.5" class="s-ink3">plugin coachingia</text>
+      <line x1="42" y1="118" x2="188" y2="118" class="s-stroke" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="115" y="138" text-anchor="middle" font-size="11" class="s-ink2">5 skills de palier</text>
+      <text x="115" y="157" text-anchor="middle" font-size="11" class="s-ink2">agent meta-coach</text>
+      <text x="115" y="176" text-anchor="middle" font-size="11" class="s-ink2">commandes /coach-*</text>
+      <text x="115" y="195" text-anchor="middle" font-size="11" class="s-ink2">hooks.json</text>
+
+      <rect x="350" y="45" width="200" height="190" class="s-fill-surface s-stroke" stroke-width="1.6"/>
+      <text x="450" y="76" text-anchor="middle" font-size="13" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">CoachingIA.Harness</text>
+      <text x="450" y="92" text-anchor="middle" font-size="9.5" class="s-ink3">ASP.NET Core &middot; C#</text>
+      <line x1="372" y1="105" x2="528" y2="105" class="s-stroke" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="450" y="125" text-anchor="middle" font-size="11" class="s-ink2">TranscriptReader</text>
+      <text x="450" y="144" text-anchor="middle" font-size="11" class="s-ink2">Juge (claude -p)</text>
+      <text x="450" y="163" text-anchor="middle" font-size="11" class="s-ink2">MaturityEngine</text>
+      <text x="450" y="182" text-anchor="middle" font-size="11" class="s-ink2">Serveur MCP</text>
+      <text x="450" y="201" text-anchor="middle" font-size="11" class="s-ink2">SQLite (EF Core)</text>
+
+      <rect x="690" y="60" width="190" height="160" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="785" y="89" text-anchor="middle" font-size="13" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">Phoenix</text>
+      <text x="785" y="105" text-anchor="middle" font-size="9.5" class="s-ink3">docker &middot; 6006 / 4317</text>
+      <line x1="712" y1="118" x2="858" y2="118" class="s-stroke" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="785" y="138" text-anchor="middle" font-size="11" class="s-ink2">traces</text>
+      <text x="785" y="157" text-anchor="middle" font-size="11" class="s-ink2">annotations</text>
+      <text x="785" y="176" text-anchor="middle" font-size="11" class="s-ink2">datasets</text>
+      <text x="785" y="195" text-anchor="middle" font-size="11" class="s-ink2">experiments</text>
+
+      <line x1="212" y1="112" x2="344" y2="112" stroke="currentColor" stroke-width="1.4" marker-end="url(#a1)"/>
+      <text x="278" y="90" text-anchor="middle" font-size="10" class="s-ink2">transcripts (lot)</text>
+      <text x="278" y="103" text-anchor="middle" font-size="10" class="s-ink3">+ hooks HTTP (direct)</text>
+
+      <line x1="552" y1="112" x2="684" y2="112" stroke="currentColor" stroke-width="1.4" marker-end="url(#a1)"/>
+      <text x="618" y="90" text-anchor="middle" font-size="10" class="s-ink2">OTLP gRPC :4317</text>
+      <text x="618" y="103" text-anchor="middle" font-size="10" class="s-ink3">spans OpenInference</text>
+
+      <line x1="684" y1="172" x2="552" y2="172" class="s-signal" stroke-width="1.4" marker-end="url(#a1s)"/>
+      <text x="618" y="192" text-anchor="middle" font-size="10" class="s-signal-f">REST /v1</text>
+      <text x="618" y="205" text-anchor="middle" font-size="10" class="s-ink3">spans &middot; annotations</text>
+
+      <line x1="344" y1="172" x2="212" y2="172" class="s-signal" stroke-width="1.4" marker-end="url(#a1s)"/>
+      <text x="278" y="192" text-anchor="middle" font-size="10" class="s-signal-f">bilan &middot; d&eacute;fi &middot; MCP</text>
+      <text x="278" y="205" text-anchor="middle" font-size="10" class="s-ink3">moment opportun</text>
+    </svg>
+    </div>
+    <figcaption>Le circuit se referme sur lui-même. En trait neutre, la collecte&nbsp;: la session émet ses hooks, le service les traduit en spans OpenInference, Phoenix les stocke. En trait orange, la restitution&nbsp;: le service relit Phoenix par l'API REST, calcule les scores de palier, et les rend disponibles dans la session suivante comme outils MCP. Le coach ne parle jamais à l'utilisateur sans avoir relu ses traces.</figcaption>
+  </figure>
+
+  <div class="stack">
+    <div>
+      <span class="k">Surface</span>
+      <h4>Plugin <code>coachingia</code></h4>
+      <p>Cinq skills de palier (contenu pédagogique et exercices), un agent <code>meta-coach</code>, des commandes <code>/coach-bilan</code> et <code>/coach-defi</code>, un <code>hooks/hooks.json</code> qui pointe sur le service local, et un <code>.mcp.json</code> qui déclare son serveur MCP. Un seul paquet, distribué par un dépôt Git servant de marketplace, installable côté VS&nbsp;Code comme côté Cowork.</p>
+    </div>
+    <div>
+      <span class="k">Cerveau</span>
+      <h4>CoachingIA.Harness</h4>
+      <p>ASP.NET Core minimal API. Parcourt les transcripts JSONL en lot, reçoit les hooks en direct, segmente en tâches, construit les spans via <code>ActivitySource</code> et l'exporteur OTLP .NET, appelle Phoenix en REST, juge en pilotant <code>claude -p</code>, persiste en SQLite/EF Core, rédige le bilan du lundi.</p>
+    </div>
+    <div>
+      <span class="k">Mémoire</span>
+      <h4>Phoenix</h4>
+      <p><code>arizephoenix/phoenix</code> en Docker&nbsp;: <code>6006</code> pour l'UI et l'OTLP HTTP, <code>4317</code> pour l'OTLP gRPC. Persistance SQLite via <code>PHOENIX_WORKING_DIR</code> sur un volume monté, ou Postgres si l'historique grossit.</p>
+    </div>
+    <div>
+      <span class="k">Appoint</span>
+      <h4>Side-car Python <em>(optionnel)</em></h4>
+      <p>Uniquement si vous voulez <code>arize-phoenix-evals</code> et <code>run_experiment</code> clés en main. Tout est faisable en C# via REST&nbsp;; ce module n'existe que pour économiser du code d'orchestration d'experiments. À trancher en phase&nbsp;05, pas avant.</p>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3>Le point technique qui décide de tout</h3>
+    <p>Claude Code sait poster ses hooks directement en HTTP, sans script shell intermédiaire&nbsp;:</p>
+  </div>
+  <pre><code>{
+  "hooks": {
+    "PreCompact": [{
+      "hooks": [{
+        "type": "http",
+        "url": "http://localhost:8080/hooks/pre-compact",
+        "timeout": 5
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "mcp__.*|Skill|Task",   <span class="cmt">// signaux du palier 3</span>
+      "hooks": [{ "type": "http", "url": "http://localhost:8080/hooks/post-tool" }]
+    }]
+  }
+}</code></pre>
+  <div class="col">
+    <p>Le service reçoit un JSON contenant <code>session_id</code>, <code>prompt_id</code>, <code>tool_name</code>, <code>tool_input</code>, <code>tool_response</code> et <code>tool_execution_time_ms</code> — de quoi reconstruire une trace fidèle. En parallèle, la télémétrie native de Claude Code (<code>CLAUDE_CODE_ENABLE_TELEMETRY=1</code>) fournit les compteurs de tokens et de coût que les hooks n'exposent pas.</p>
+  </div>
+</section>
+
+<section id="boucle">
+  <div class="sechead"><span class="num">09</span><h2>La boucle d'auto-apprentissage</h2></div>
+  <div class="col">
+    <p>C'est ici que le projet cesse d'être un tableau de bord. Un coach qui note sans jamais vérifier ses notes n'apprend rien&nbsp;; il accumule des opinions. Le mécanisme ci-dessous existe pour une seule raison&nbsp;: <strong>donner au coach un signal de vérité indépendant de son propre jugement</strong>, et l'obliger à réviser sa grille quand les deux divergent.</p>
+    <p>L'image la plus juste est celle d'un entraîneur de tennis qui filme les matchs. Il note la technique du revers&nbsp;: c'est son jugement. Il regarde ensuite le score du match&nbsp;: c'est la vérité, et elle ne lui appartient pas. Quand ses «&nbsp;beaux revers&nbsp;» perdent systématiquement, ce n'est pas le joueur qu'il faut corriger — c'est la grille de notation. Et cette grille se teste sur les matchs archivés avant d'être adoptée.</p>
+  </div>
+
+  <figure>
+    <div class="svgscroll">
+    <svg viewBox="0 0 950 300" role="img" aria-label="Boucle en cinq temps : observer, juger avec la rubrique en cours, constater l'issue réelle, confronter les deux, corriger la rubrique. La rubrique révisée ne remplace l'ancienne qu'après avoir passé un experiment de non-régression sur l'historique." font-family="'IBM Plex Mono', ui-monospace, monospace">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="a2s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" class="s-signal-f"/>
+        </marker>
+      </defs>
+
+      <rect x="15" y="50" width="120" height="90" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="75" y="76" text-anchor="middle" font-size="12" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">1 Observer</text>
+      <text x="75" y="98" text-anchor="middle" font-size="9.5" class="s-ink2">session r&eacute;elle</text>
+      <text x="75" y="112" text-anchor="middle" font-size="9.5" class="s-ink3">hooks + OTLP</text>
+      <text x="75" y="126" text-anchor="middle" font-size="9.5" class="s-ink3">&rarr; Phoenix</text>
+
+      <rect x="215" y="50" width="120" height="90" class="s-fill-surface s-stroke" stroke-width="1.6"/>
+      <text x="275" y="76" text-anchor="middle" font-size="12" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">2 Juger</text>
+      <text x="275" y="98" text-anchor="middle" font-size="9.5" class="s-ink2">rubrique v N</text>
+      <text x="275" y="112" text-anchor="middle" font-size="9.5" class="s-ink3">annotation LLM</text>
+      <text x="275" y="126" text-anchor="middle" font-size="9.5" class="s-ink3">= pr&eacute;diction</text>
+
+      <rect x="415" y="50" width="120" height="90" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="475" y="76" text-anchor="middle" font-size="12" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">3 Constater</text>
+      <text x="475" y="98" text-anchor="middle" font-size="9.5" class="s-ink2">issue r&eacute;elle</text>
+      <text x="475" y="112" text-anchor="middle" font-size="9.5" class="s-ink3">t&acirc;che close ?</text>
+      <text x="475" y="126" text-anchor="middle" font-size="9.5" class="s-ink3">reprise ? co&ucirc;t ?</text>
+
+      <rect x="615" y="50" width="120" height="90" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="675" y="76" text-anchor="middle" font-size="12" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">4 Confronter</text>
+      <text x="675" y="98" text-anchor="middle" font-size="9.5" class="s-ink2">pr&eacute;diction</text>
+      <text x="675" y="112" text-anchor="middle" font-size="9.5" class="s-ink2">vs issue</text>
+      <text x="675" y="126" text-anchor="middle" font-size="9.5" class="s-ink3">&eacute;cart mesur&eacute;</text>
+
+      <rect x="815" y="50" width="120" height="90" class="s-fill-surface s-stroke" stroke-width="1"/>
+      <text x="875" y="76" text-anchor="middle" font-size="12" font-weight="600" class="s-ink" font-family="'Bricolage Grotesque', sans-serif">5 Corriger</text>
+      <text x="875" y="98" text-anchor="middle" font-size="9.5" class="s-ink2">meta-coach</text>
+      <text x="875" y="112" text-anchor="middle" font-size="9.5" class="s-ink3">r&eacute;&eacute;crit la</text>
+      <text x="875" y="126" text-anchor="middle" font-size="9.5" class="s-ink3">rubrique</text>
+
+      <line x1="137" y1="95" x2="211" y2="95" stroke="currentColor" stroke-width="1.4" marker-end="url(#a2)"/>
+      <text x="174" y="78" text-anchor="middle" font-size="9.5" class="s-ink3">spans du</text>
+      <text x="174" y="90" text-anchor="middle" font-size="9.5" class="s-ink3">palier</text>
+
+      <line x1="337" y1="95" x2="411" y2="95" stroke="currentColor" stroke-width="1.4" marker-end="url(#a2)"/>
+      <text x="374" y="78" text-anchor="middle" font-size="9.5" class="s-ink3">score</text>
+      <text x="374" y="90" text-anchor="middle" font-size="9.5" class="s-ink3">pr&eacute;dit</text>
+
+      <line x1="537" y1="95" x2="611" y2="95" stroke="currentColor" stroke-width="1.4" marker-end="url(#a2)"/>
+      <text x="574" y="78" text-anchor="middle" font-size="9.5" class="s-ink3">v&eacute;rit&eacute;</text>
+      <text x="574" y="90" text-anchor="middle" font-size="9.5" class="s-ink3">terrain</text>
+
+      <line x1="737" y1="95" x2="811" y2="95" stroke="currentColor" stroke-width="1.4" marker-end="url(#a2)"/>
+      <text x="774" y="78" text-anchor="middle" font-size="9.5" class="s-ink3">d&eacute;saccords</text>
+      <text x="774" y="90" text-anchor="middle" font-size="9.5" class="s-ink3">&rarr; dataset</text>
+
+      <path d="M875,142 L875,245 L650,245" fill="none" class="s-signal" stroke-width="1.6"/>
+      <path d="M510,245 L275,245 L275,144" fill="none" class="s-signal" stroke-width="1.6" marker-end="url(#a2s)"/>
+      <rect x="510" y="222" width="140" height="46" class="s-fill-sunk s-signal" stroke-width="1.4"/>
+      <text x="580" y="240" text-anchor="middle" font-size="10" font-weight="600" class="s-signal-f">experiment de</text>
+      <text x="580" y="256" text-anchor="middle" font-size="10" font-weight="600" class="s-signal-f">non-r&eacute;gression</text>
+      <text x="762" y="236" text-anchor="middle" font-size="9.5" class="s-ink3">rubrique v N+1</text>
+      <text x="392" y="236" text-anchor="middle" font-size="9.5" class="s-ink3">promue si score &ge; v N</text>
+    </svg>
+    </div>
+    <figcaption>Le seul chemin par lequel la grille du coach peut changer passe par le portail orange. Une rubrique révisée est rejouée sur l'ensemble des sessions archivées&nbsp;; si elle prédit moins bien que celle qu'elle remplace, elle est rejetée et l'ancienne reste en service. C'est ce portail — et non le meta-coach — qui empêche le système de dériver.</figcaption>
+  </figure>
+
+  <div class="col">
+    <h3>Ce qui rend la vérité indépendante</h3>
+    <p>Toute la validité du dispositif tient à ce que l'étape&nbsp;3 ne consulte jamais l'étape&nbsp;2. La vérité terrain est construite uniquement à partir de faits que le coach ne contrôle pas&nbsp;: la tâche a-t-elle été marquée close (<code>TaskCompleted</code>)&nbsp;? l'utilisateur a-t-il dû reformuler&nbsp;? un outil a-t-il échoué après le conseil&nbsp;? la session s'est-elle terminée sur un <code>stop_reason</code> d'abandon&nbsp;? Ces faits arrivent par les hooks, pas par un jugement de modèle.</p>
+    <p>Dans Phoenix, la distinction est explicite&nbsp;: les jugements du coach sont écrits avec <code>annotator_kind: "LLM"</code>, la vérité terrain avec <code>annotator_kind: "CODE"</code>, et votre propre retour (« ce conseil était à côté ») avec <code>annotator_kind: "HUMAN"</code>. Trois sources qu'on peut filtrer séparément dans l'interface — et un retour humain pèse plus lourd que dix accords machine.</p>
+  </div>
+
+  <pre><code>POST /v1/span_annotations?sync=true
+{
+  "data": [{
+    "span_id": "abc123def456",
+    "name": "prompt_clarity",
+    "annotator_kind": "LLM",              <span class="cmt">// jugement du coach</span>
+    "result": { "score": 0.42, "label": "flou",
+                "explanation": "Aucun crit&egrave;re d'acceptation." },
+    "metadata": { "rubric_version": "prompt/v7", "learner": "anthony" }
+  }]
+}</code></pre>
+
+  <div class="col">
+    <h3>Qui paie le juge</h3>
+    <p>Un abonnement Team donne accès à Claude, pas à des crédits d'API&nbsp;: le paquet NuGet <code>Anthropic</code> réclamerait une clé Console facturée à part. Il existe un chemin plus court — le harnais appelle le CLI en mode non interactif, qui utilise votre session déjà authentifiée&nbsp;:</p>
+  </div>
+  <pre><code>claude -p "&lt;rubrique + trace &agrave; noter&gt;" \
+  --output-format json \
+  --json-schema '{"type":"object","properties":{
+      "score":{"type":"number"},"label":{"type":"string"},
+      "explanation":{"type":"string"}},
+      "required":["score","label","explanation"]}'
+<span class="cmt"># le r&eacute;sultat valid&eacute; arrive dans .structured_output</span></code></pre>
+  <div class="col">
+    <p>Le drapeau <code>--json-schema</code> fait exactement ce qu'il faut pour un juge&nbsp;: il contraint la sortie au schéma et la renvoie dans <code>structured_output</code>, sans parsing fragile. Deux réserves&nbsp;: il faut le <em>CLI autonome</em> installé (l'extension VS&nbsp;Code embarque sa propre copie, réservée à son panneau), et n'ajoutez pas <code>--bare</code> — ce mode ignore délibérément les identifiants d'abonnement et exige une clé d'API. Ces appels consomment votre quota de plan&nbsp;: le juge tourne en lot, à froid, pas pendant que vous travaillez.</p>
+    <p>Le champ <code>metadata.rubric_version</code> est ce qui rend l'auto-apprentissage traçable&nbsp;: chaque annotation sait quelle version de la grille l'a produite, donc on peut mesurer après coup si la v7 prédisait mieux que la v6 — sur les mêmes sessions.</p>
+    <div class="callout"><strong>Cadence.</strong> Étapes 1 à 4 en continu, à chaque session. Étape 5 en lot, une fois par semaine ou tous les vingt désaccords, jamais en direct. Un coach qui révise sa grille pendant qu'il vous note ne mesure plus rien de stable.</div>
+  </div>
+</section>
+
+<section id="donnees">
+  <div class="sechead"><span class="num">10</span><h2>Modèle de données</h2></div>
+  <div class="col">
+    <p>Multi-apprenant dès le schéma, mono-apprenant dans l'implémentation&nbsp;: <code>LearnerId</code> existe partout et vaut une constante tant qu'il n'y a que vous. Passer au multi, plus tard, ne coûtera qu'une page de connexion, pas une migration.</p>
+    <p>Côté Phoenix, un <strong>projet unique</strong> plutôt qu'un projet par apprenant&nbsp;: l'identité passe par les attributs OpenInference <code>user.id</code> et <code>session.id</code>, sur lesquels l'interface sait filtrer. Un projet par personne fragmente l'historique et casse les experiments transverses.</p>
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Table</th><th>Colonnes clés</th><th>Rôle</th></tr></thead>
+    <tbody>
+      <tr><td>Learner</td><td>Id, DisplayName, CreatedAt</td><td>L'apprenant. Une seule ligne pour l'instant.</td></tr>
+      <tr><td>Session</td><td>Id, LearnerId, PhoenixTraceId, StartedAt, EndedAt, Outcome</td><td>Une session Claude, reliée à sa trace Phoenix.</td></tr>
+      <tr><td>Observation</td><td>Id, SessionId, Level, SignalKey, RawValue, NormValue, SpanId</td><td>Un signal mesuré. La table qui grossit.</td></tr>
+      <tr><td>LevelScore</td><td>Id, LearnerId, Level, Score, WindowStart, WindowEnd, Status</td><td>Score de palier sur fenêtre glissante&nbsp;: acquis, en cours, régressé.</td></tr>
+      <tr><td>Task</td><td>Id, SessionId, Title, StartTurn, EndTurn, Source</td><td>La tâche segmentée — l'unité du graphe, du bilan et des défis. Source&nbsp;: heuristique, juge, ou événement.</td></tr>
+      <tr><td>Challenge</td><td>Id, LearnerId, Level, SignalKey, Statement, IssuedAt, Verdict</td><td>Le défi hebdomadaire et son verdict, mesuré dans les traces au bilan suivant.</td></tr>
+      <tr><td>CoachAdvice</td><td>Id, SessionId, Level, Advice, Predicted, Actual, SpanId, RubricVersion</td><td>Ce que le coach a prédit et ce qui s'est réellement passé. Le carburant de l'étape&nbsp;5.</td></tr>
+      <tr><td>RubricVersion</td><td>Id, Level, Version, Content, ExperimentId, PromotedAt, RetiredAt</td><td>Grille versionnée. Append-only&nbsp;: on ne réécrit jamais une version, on en promeut une nouvelle.</td></tr>
+      <tr><td>KnownFailure</td><td>Id, LearnerId, Signature, FirstSeen, LastSeen, Occurrences</td><td>Mémoire inter-sessions des erreurs. Alimente le signal <code>recurrence</code>.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="sechead"><span class="num">11</span><h2>Roadmap</h2></div>
+  <div class="col">
+    <p>Repriorisée en v0.3. La logique&nbsp;: chaque phase doit produire quelque chose que vous <em>utilisez</em> la semaine même — pas seulement quelque chose qui prépare la phase suivante. Le parseur d'historique passe devant tout, parce qu'il débloque tout&nbsp;; les scores de palier, qui étaient la phase 2, attendent la phase 05&nbsp;: un bilan qui cite vos sessions est utile sans score, l'inverse n'est pas vrai.</p>
+  </div>
+
+  <div class="phase">
+    <div class="p-num">00<span class="dur">½ jour</span></div>
+    <div>
+      <h3>Le tuyau, et le format</h3>
+      <p>Phoenix en Docker, un span émis à la main en OTLP, visible dans l'UI — déjà livré et testé. S'y ajoute en v0.3&nbsp;: échantillonner vos transcripts JSONL réels sous <code>~/.claude/projects/</code> et figer ce que le parseur sait lire, version par version.</p>
+      <span class="out">sortie : un span « hello », et le format des transcripts validé sur vos fichiers</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">01<span class="dur">2 à 3 jours</span></div>
+    <div>
+      <h3>Le parseur d'historique</h3>
+      <p>Lire tous les transcripts existants, reconstruire sessions, tours, appels d'outils et sous-agents, segmenter en tâches (heuristique d'abord), pousser le tout vers Phoenix rétroactivement. Les hooks ne sont pas nécessaires à cette phase. C'est elle qui supprime le démarrage à froid.</p>
+      <span class="out">sortie : des semaines d'historique visibles dans Phoenix au premier lancement</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">02<span class="dur">2 à 3 jours</span></div>
+    <div>
+      <h3>Le rituel du lundi</h3>
+      <p>Heuristiques de lecture (reprises, abandons, vérifications) puis <code>claude -p</code> pour rédiger&nbsp;: trois observations citant vos vraies sessions, une réussite, un défi vérifiable. Déposé chaque lundi en tâche planifiée. C'est la première brique d'<em>accompagnement</em> — et elle ne dépend d'aucun score de palier.</p>
+      <p>La même phase livre les <strong>indicateurs d'usage</strong> de la section&nbsp;07&nbsp;: jetons par semaine, familles de modèles, types de travail, alertes de sous-utilisation. Ils tombent presque gratuitement une fois le parseur en place, et ils donnent au bilan son premier chiffre parlant.</p>
+      <span class="out">sortie : un lundi matin où le bilan vous apprend quelque chose</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">03<span class="dur">2 jours</span></div>
+    <div>
+      <h3>Le temps réel et le moment opportun</h3>
+      <p>Les endpoints de hooks (le service livré avec la v0.2 est réutilisé tel quel), la détection de session notable sur <code>Stop</code>, l'observation d'une ligne au prochain <code>SessionStart</code>, et le health-check&nbsp;: si le harnais n'entend plus rien alors que des transcripts continuent d'apparaître, le bilan du lundi le signale.</p>
+      <span class="out">sortie : un conseil qui arrive le bon jour, et un harnais qui sait dire qu'il est cassé</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">04<span class="dur">3 à 4 jours, surtout d'écriture</span></div>
+    <div>
+      <h3>Le curriculum</h3>
+      <p>Les cinq skills de palier, enfin écrites&nbsp;: leçons courtes, exercices, et pour chacune la liste des signaux qu'elle vise. <code>/coach-defi</code> relie le défi de la semaine à sa leçon. C'est la phase la moins technique et la plus décisive pour le mot «&nbsp;accompagnement&nbsp;».</p>
+      <span class="out">sortie : cinq skills dont l'effet est mesurable</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">05<span class="dur">2 à 3 jours</span></div>
+    <div>
+      <h3>Scores de palier et graphe branché</h3>
+      <p>Le MaturityEngine — fenêtres glissantes, cumulativité, régression —, et <code>GET /api/graph</code> qui remplace les données de démonstration du prototype par vos tâches segmentées. Les scores arrivent ici avec des semaines de données derrière eux&nbsp;: les bornes de normalisation se calent sur l'historique, plus sur l'attente.</p>
+      <span class="out">sortie : les cinq paliers notés, le graphe sur données réelles</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">06<span class="dur">3 à 4 jours</span></div>
+    <div>
+      <h3>L'auto-apprentissage</h3>
+      <p>Datasets Phoenix des désaccords, agent meta-coach, experiments de non-régression, promotion versionnée des rubriques — et des leçons&nbsp;: une leçon dont les signaux ne bougent pas est réécrite par le même mécanisme.</p>
+      <span class="out">sortie : une rubrique promue et une rejetée, tracées</span>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="p-num">07<span class="dur">ouvert</span></div>
+    <div>
+      <h3>Cowork, multi-apprenants, Angular</h3>
+      <p>La voie Cowork (plugin + app desktop, ou journal en dossier connecté), l'authentification, la comparaison entre apprenants, le portage du front. Volontairement en dernier&nbsp;: tout ce qui précède doit avoir fait ses preuves sur un seul utilisateur et une seule surface.</p>
+      <span class="out">sortie : un second apprenant, une seconde surface</span>
+    </div>
+  </div>
+</section>
+
+<section id="risques">
+  <div class="sechead"><span class="num">12</span><h2>Points à valider avant de coder</h2></div>
+  <div class="col">
+    <p>La liste a changé avec la repriorisation&nbsp;: les hooks, qui portaient tout en v0.2, ne sont plus qu'un complément — leurs risques descendent d'un cran. Deux paris nouveaux montent à la place.</p>
+  </div>
+  <div class="risk">
+    <div><span class="sev high">à lever</span>
+      <div><h4>Le format des transcripts est interne</h4>
+      <p>Les JSONL de <code>~/.claude/projects/</code> ne sont pas un contrat public&nbsp;: leur structure peut changer avec les versions de Claude Code. Parade en place&nbsp;: parseur tolérant, lignes illisibles comptées, et une commande <code>probe</code> qui sort en erreur dès qu'un champ dont dépend le parseur disparaît. Premier passage sur un transcript réel&nbsp;: zéro ligne illisible sur 1&nbsp;217. Reste à rejouer la sonde sur <em>vos</em> fichiers VS&nbsp;Code — la surface diffère.</p></div>
+    </div>
+    <div><span class="sev high">à lever</span>
+      <div><h4>La segmentation en tâches est un pari</h4>
+      <p>Toute l'interface — graphe, bilan, défis — parle en tâches, et la télémétrie n'en connaît pas. L'heuristique (nouveau prompt non correctif = nouvelle tâche, événements de tâche quand ils existent) doit être validée à la main sur votre historique en phase&nbsp;01. Si elle découpe mal, tout ce qui est au-dessus raconte des histoires fausses.</p></div>
+    </div>
+    <div><span class="sev mid">à surveiller</span>
+      <div><h4>Le ton du coach</h4>
+      <p>Le risque produit numéro un n'est plus technique&nbsp;: un coach bavard, moralisateur ou générique est désinstallé en quinze jours. Les règles de retenue de la section&nbsp;06 sont dans le code, pas dans les bonnes intentions — une observation par jour, un défi actif, le positif d'abord. Le réglage fin se fera sur vous, à l'usage.</p></div>
+    </div>
+    <div><span class="sev mid">à surveiller</span>
+      <div><h4>Les hooks restent non-contractuels</h4>
+      <p>Champs et événements évoluent entre versions. Déclassé de «&nbsp;à lever&nbsp;» à «&nbsp;à surveiller&nbsp;»&nbsp;: un hook qui casse ne coûte plus que le temps réel — le lot rattrape tout le reste. Le health-check de la phase&nbsp;03 transforme une panne silencieuse en une ligne dans le bilan du lundi.</p></div>
+    </div>
+    <div><span class="sev low">maîtrisé</span>
+      <div><h4>Coût du juge</h4>
+      <p>Heuristiques d'abord, juge promu seulement là où elles se trompent, appels en lot via <code>claude -p</code> sur votre abonnement — jamais pendant que vous travaillez.</p></div>
+    </div>
+    <div><span class="sev low">maîtrisé</span>
+      <div><h4>Vie privée</h4>
+      <p>Tout reste sur le poste&nbsp;: transcripts lus localement, Phoenix en Docker local, SQLite local. Seuls les appels au juge sortent, et <code>CaptureContent: false</code> coupe l'export du texte vers Phoenix. À rediscuter en premier si un second apprenant arrive.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="suite">
+  <div class="sechead"><span class="num">13</span><h2>Ce que j'attends de vous</h2></div>
+  <div class="col">
+    <p>Trois décisions suffisent à lancer la phase&nbsp;00 version v0.3&nbsp;:</p>
+    <ol>
+      <li><strong>Lancez la sonde.</strong> <code>dotnet run --project src/CoachingIA.Cli -- probe</code>. Son rapport est anonyme — noms de champs, comptages, versions — et se partage tel quel. S'il sort en erreur, un champ manque et je corrige le parseur avant d'aller plus loin.</li>
+      <li><strong>Le canal du rituel.</strong> Où le bilan du lundi doit-il arriver&nbsp;: page web locale servie par le harnais, fichier déposé dans <code>D:\CoachingIA</code>, les deux&nbsp;?</li>
+      <li><strong>Le ton.</strong> Direct ou diplomate&nbsp;? Et la limite du moment opportun — une observation par jour est le plafond proposé&nbsp;; c'est peut-être déjà trop.</li>
+      <li><strong>Votre enveloppe hebdomadaire.</strong> Ouvrez <code>/usage</code> dans Claude Code et relevez ce qu'il annonce. Sans ce repère, les indicateurs d'usage restent lisibles en tendance mais ne peuvent pas dire ce qui est perdu.</li>
+    </ol>
+    <p>Le harnais livré avec la v0.2 reste valable tel quel&nbsp;: il devient la brique «&nbsp;temps réel&nbsp;» de la phase&nbsp;03. Rien n'est jeté — c'est l'ordre qui change, et ce qui compte comme «&nbsp;fini&nbsp;»&nbsp;: plus un score qui s'affiche, mais un conseil qui vous fait changer quelque chose la semaine où il arrive.</p>
+  </div>
+</section>
+
+<footer>
+  <p><strong>Sources techniques</strong> — toutes les affirmations d'API de ce document proviennent de&nbsp;:</p>
+  <ul>
+    <li><a href="https://code.claude.com/docs/en/hooks">Claude Code — Hooks reference</a> (événements, champs JSON, hooks de type <code>http</code>)</li>
+    <li><a href="https://code.claude.com/docs/en/monitoring-usage">Claude Code — Monitoring &amp; OpenTelemetry</a> (variables d'environnement, métriques, événements, traces bêta)</li>
+    <li><a href="https://arize.com/docs/phoenix/self-hosting/deployment-options/docker">Phoenix — Self-hosting Docker</a> (image, ports 6006 / 4317, persistance)</li>
+    <li><a href="https://arize.com/docs/phoenix/sdk-api-reference/rest-api/api-reference/spans/create-span-annotations">Phoenix — Create span annotations</a> (<code>POST /v1/span_annotations</code>)</li>
+    <li><a href="https://github.com/Arize-ai/phoenix/blob/main/schemas/openapi.json">Phoenix — schéma OpenAPI</a> (datasets, experiments, runs)</li>
+    <li><a href="https://github.com/Arize-ai/openinference/blob/main/spec/semantic_conventions.md">OpenInference — Semantic conventions</a> (span kinds, <code>llm.token_count.*</code>, <code>graph.node.*</code>, <code>session.id</code>)</li>
+    <li><a href="https://platform.claude.com/docs/en/api/sdks/csharp">Anthropic — SDK C#</a> (paquet NuGet <code>Anthropic</code>, statut bêta)</li>
+    <li><a href="https://code.claude.com/docs/en/vs-code">Claude Code — extension VS Code</a> (CLI embarqué, hooks / plugins / MCP partagés avec la CLI)</li>
+    <li><a href="https://claude.com/docs/cowork/guide/plugins">Cowork — installer des plugins</a> (un plugin peut embarquer skills, connecteurs, agents et hooks)</li>
+    <li><a href="https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork">Cowork — prise en main</a> (exécution dans le cloud, accès aux fichiers via l'app desktop)</li>
+    <li><a href="https://code.claude.com/docs/en/headless">Claude Code — mode non interactif</a> (<code>claude -p</code>, <code>--json-schema</code>, <code>--bare</code> et l'authentification)</li>
+    <li><a href="https://code.claude.com/docs/en/analytics">Claude Code — analytics d'équipe</a> (API réservée à Enterprise&nbsp;; export de dépense par personne et par modèle disponible sur Teams)</li>
+    <li><a href="https://support.claude.com/en/articles/12883420-view-usage-analytics-for-team-and-enterprise-plans">Claude — export de dépense Team et Enterprise</a> (colonnes, granularité, qui peut exporter)</li>
+  </ul>
+  <p>CoachingIA &middot; document d'architecture v0.4 &middot; 23 août 2026 &middot; révision&nbsp;: la mesure reste, l'accompagnement passe devant</p>
+</footer>
+
+</div>

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "CoachingIA.Harness": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55316;http://localhost:55317"
+    }
+  }
+}
