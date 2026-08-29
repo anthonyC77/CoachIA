@@ -4,7 +4,7 @@ namespace CoachingIA.Harness.Core.Coaching;
 
 public sealed record Challenge(
     int Level, string SignalKey, string Statement, string? Flourish,
-    string Why, string Verification)
+    string Why, string Verification, string? ProblemId = null)
 {
     /// <summary>Le fait d'abord, l'image ensuite — jamais l'inverse.</summary>
     public string Render() => new LensedMessage(Statement, Flourish).ToString();
@@ -19,38 +19,6 @@ public sealed record Challenge(
 /// </summary>
 public sealed class ChallengeLibrary
 {
-    private sealed record Entry(
-        int Level, string SignalKey, string Statement, string Why,
-        string Verification, bool HigherIsBetter, double Target, bool NeedsHooks);
-
-    private static readonly Entry[] Catalogue =
-    [
-        new(1, "has_acceptance_criteria",
-            "Lancez trois tâches d'affilée avec, dans le premier message, de quoi savoir que c'est fini.",
-            "Vos prompts initiaux ne disent presque jamais à quoi ressemble le résultat attendu : la reprise arrive au deuxième message.",
-            "has_acceptance_criteria sur les tâches de la semaine", true, 0.6, false),
-
-        new(2, "compaction_mode",
-            "Compactez deux fois avant la saturation, en disant ce qu'il faut garder.",
-            "Vos compactions sont subies plutôt que choisies : elles arrivent quand la fenêtre est déjà pleine.",
-            "PreCompact déclenché manuellement", true, 0.7, true),
-
-        new(3, "verification_present",
-            "Terminez chaque tâche de la semaine par une vérification automatique, pas par une relecture.",
-            "La plupart de vos tâches se closent sans qu'un test, un build ou un lint n'ait tourné.",
-            "verification_present sur les tâches d'édition", true, 0.7, false),
-
-        new(4, "loop_closure",
-            "Fermez trois boucles sur un test vert plutôt que sur votre propre « stop ».",
-            "Vos boucles s'arrêtent quand vous reprenez la main, pas quand quelque chose a confirmé que ça marche.",
-            "loop_closure sur les tâches closes", true, 0.6, false),
-
-        new(5, "self_correction",
-            "Après un échec, changez de stratégie : aucun nœud rejoué à l'identique cette semaine.",
-            "Certains outils sont relancés avec exactement les mêmes paramètres après avoir échoué.",
-            "self_correction sur les rejeux", true, 0.5, false),
-    ];
-
     /// <summary>
     /// Choisit un défi, et un seul. La règle de sélection suit la cumulativité
     /// des paliers : on vise le plus bas palier dont le signal est encore sous
@@ -59,18 +27,27 @@ public sealed class ChallengeLibrary
     /// </summary>
     public Challenge? Pick(IReadOnlyDictionary<string, double> signalAverages, LensWriter writer, bool hooksAvailable = false)
     {
-        foreach (var entry in Catalogue.OrderBy(e => e.Level))
+        foreach (var problem in SignalSpecs.Corpus.Problems.OrderBy(p => p.Level))
         {
-            if (entry.NeedsHooks && !hooksAvailable) continue;
-            if (!signalAverages.TryGetValue(entry.SignalKey, out var value)) continue;
+            if (problem.Challenge is not { } defi) continue;
+            if (defi.NeedsHooks && !hooksAvailable) continue;
+            if (!signalAverages.TryGetValue(defi.SignalKey, out var value)) continue;
             if (double.IsNaN(value)) continue;
 
-            var below = entry.HigherIsBetter ? value < entry.Target : value > entry.Target;
+            // Le défi porte sa propre cible quand il en déclare une : un exercice
+            // d'une semaine ne se juge pas au seuil d'une tendance de fond, et
+            // certains défis visent un signal que les transcripts ne mesurent pas.
+            var spec = SignalSpecs.Find(defi.SignalKey);
+            var target = defi.Target ?? spec?.Target;
+            if (target is null) continue;
+            var higherIsBetter = defi.HigherIsBetter ?? spec?.HigherIsBetter ?? true;
+
+            var below = higherIsBetter ? value < target : value > target;
             if (!below) continue;
 
-            var lensed = writer.ForChallenge(entry.SignalKey, entry.Statement);
-            return new Challenge(entry.Level, entry.SignalKey, entry.Statement, lensed.Flourish,
-                entry.Why, entry.Verification);
+            var lensed = writer.ForChallenge(problem.Id, defi.SignalKey, defi.Statement);
+            return new Challenge(problem.Level, defi.SignalKey, defi.Statement, lensed.Flourish,
+                defi.Why, defi.Verification, problem.Id);
         }
         return null;
     }
@@ -113,25 +90,30 @@ public sealed class MomentDetector
         var title = Shorten(task.Title);
 
         if (task.ReworkTurns >= ReworkThreshold)
-            return writer.ForMoment("rework",
-                $"Hier, « {title} » a demandé {task.ReworkTurns} reprises. " +
-                "Un critère d'acceptation dans le premier message en aurait probablement évité deux.");
+            return Say(writer, "rework", ("tache", title), ("reprises", task.ReworkTurns.ToString()));
 
         if (!task.Completed && !task.InProgress)
-            return writer.ForMoment("abandon",
-                $"« {title} » s'est arrêtée sans aboutir. Reprendre par ce qui a bloqué vaut mieux que repartir de zéro.");
+            return Say(writer, "abandon", ("tache", title));
 
         var failures = Value("tool_failure_rate");
         if (!double.IsNaN(failures) && failures > ToolFailureThreshold && task.ToolCalls >= 8)
-            return writer.ForMoment("tool_failures",
-                $"Sur « {title} », {Why("tool_failure_rate")}. Souvent le signe d'un harnais mal réglé plutôt que d'un modèle distrait.");
+            return Say(writer, "tool_failures", ("tache", title), ("preuve", Why("tool_failure_rate")));
 
         if (Value("verification_present") == 0 && Value("loop_closure") == 0 && task.ToolCalls >= 10)
-            return writer.ForMoment("no_verification",
-                $"« {title} » s'est terminée sans qu'aucun test n'ait tourné. " +
-                "C'est le point de bascule entre laisser l'agent travailler et devoir tout relire.");
+            return Say(writer, "no_verification", ("tache", title));
 
         return null;
+    }
+
+    /// <summary>
+    /// Le texte vient du corpus, les marques sont remplies ici. Un moment absent
+    /// du corpus rend simplement le silence : mieux vaut ne rien dire qu'afficher
+    /// une phrase à trous.
+    /// </summary>
+    private static LensedMessage? Say(LensWriter writer, string key, params (string Name, string Value)[] values)
+    {
+        var text = SignalSpecs.Corpus.MomentText(key, values.ToDictionary(v => v.Name, v => v.Value, StringComparer.Ordinal));
+        return text is null ? null : writer.ForMoment(key, text);
     }
 
     private static string Shorten(string title)

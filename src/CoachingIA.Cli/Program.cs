@@ -23,6 +23,16 @@ var raceId = Arg("--race");
 var weekArg = Arg("--week");
 var lensDir = Arg("--lenses") ?? DefaultLensDir();
 
+// Le corpus de maturité se monte avant tout calcul : c'est lui qui porte les
+// signaux notés, les problématiques et les paliers. Absent ou mal formé, la
+// version intégrée prend le relais et le dit — l'outil doit tourner sur un
+// poste où rien n'est en place, y compris sans dossier de lentilles.
+{
+    var corpusWarnings = new List<string>();
+    SignalSpecs.Use(MaturityCorpus.Load(lensDir, corpusWarnings));
+    foreach (var w in corpusWarnings) Console.Error.WriteLine("⚠ maturité : " + w);
+}
+
 static string DefaultLensDir()
 {
     // On remonte depuis le binaire jusqu'au dossier « lenses » du dépôt : le
@@ -568,24 +578,38 @@ int Lentille()
     // unité, et c'est le seul geste qui garde le pack juste avec le temps.
     if (Array.IndexOf(args, "--variantes") >= 0)
     {
-        Console.WriteLine("  Les scènes, signal par signal — la première est celle de cette semaine.\n");
+        Console.WriteLine("  Les scènes, problématique par problématique — la première est celle de cette semaine.\n");
         var cycle = writer.Cycle;
-        foreach (var spec in SignalSpecs.All)
-        {
-            var scenes = writer.VariantsFor(spec.Key);
-            if (scenes.Count == 0) { Console.WriteLine($"  {spec.Key,-26} aucune scène"); continue; }
+        var corpus = SignalSpecs.Corpus;
 
-            var courante = writer.ForSignal(spec.Key, "").Flourish;
-            Console.WriteLine($"  {spec.Key}  (palier {spec.Level}, {scenes.Count} scène(s))");
-            foreach (var scene in scenes)
-            {
-                var marque = scene == courante ? "→" : " ";
-                foreach (var (line, i) in Wrap(scene, 72).Select((l, i) => (l, i)))
-                    Console.WriteLine(i == 0 ? $"    {marque} {line}" : $"      {line}");
-            }
+        // On parcourt tout ce qui peut porter une scène, pas seulement les
+        // signaux notés : c'est la commande de relecture, et une scène qu'elle
+        // n'affiche pas est une scène que personne ne corrigera jamais. C'est
+        // très exactement ce qui était arrivé à graph_depth.
+        foreach (var probleme in corpus.Problems.OrderBy(p => p.Level))
+        {
+            Console.WriteLine($"  ── palier {probleme.Level} · {probleme.Title}");
+            Ecrire(probleme.Id, "problématique");
+            foreach (var cle in probleme.Signals)
+                Ecrire(cle, corpus.Signal(cle)?.IsGraded == true ? "noté" : "sans cible");
             Console.WriteLine();
         }
         Console.WriteLine($"  Cycle {cycle}. La semaine prochaine, chaque signal descend d'un cran.");
+
+        void Ecrire(string cle, string genre)
+        {
+            var scenes = writer.VariantsFor(cle);
+            if (scenes.Count == 0) return;
+
+            var courante = writer.ForSignal(cle, "").Flourish;
+            Console.WriteLine($"     {cle}  ({genre}, {scenes.Count} scène(s))");
+            foreach (var scene in scenes)
+            {
+                var marque = scene == courante ? "→" : " ";
+                foreach (var (line, i) in Wrap(scene, 70).Select((l, i) => (l, i)))
+                    Console.WriteLine(i == 0 ? $"       {marque} {line}" : $"         {line}");
+            }
+        }
         return 0;
     }
 

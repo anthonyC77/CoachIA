@@ -36,8 +36,15 @@ public static class ReviewTests
         Console.WriteLine("\nObservations");
         check(review.Observations.Count is > 0 and <= 3,
               $"trois observations au maximum (obtenu {review.Observations.Count})");
-        check(review.Observations.Select(o => o.Level).Distinct().Count() == review.Observations.Count,
-              "jamais deux observations du même palier");
+        // La déduplication porte sur la problématique, pas sur le palier : deux
+        // reproches distincts du palier 2 — « la fenêtre est subie » et « on
+        // charge large » — ont le droit de coexister, trois variations du même
+        // reproche non.
+        check(review.Observations.Select(o => o.ProblemId ?? "palier:" + o.Level).Distinct().Count()
+              == review.Observations.Count,
+              "jamais deux observations de la même problématique");
+        check(review.Observations.All(o => o.ProblemId is not null),
+              "chaque observation sait de quelle problématique elle relève");
         check(review.Observations.All(o => o.TaskTitle.Length > 0),
               "chaque observation cite une tâche réelle — c'est la promesse du format");
         check(review.Observations.All(o => o.Evidence.Length > 0),

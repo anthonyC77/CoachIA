@@ -130,6 +130,9 @@ CoachingIA.Harness.Tests.TranscriptTests.Run(Check);
 Console.WriteLine("\n────────────────────────────  usage  ────────────────────────────\n");
 CoachingIA.Harness.Tests.UsageTests.Run(Check);
 
+Console.WriteLine("\n─────────────────────────  corpus de maturité  ─────────────────────────\n");
+CoachingIA.Harness.Tests.MaturiteTests.Run(Check, FindLensDir());
+
 Console.WriteLine("\n────────────────────────────  lentilles  ────────────────────────────\n");
 CoachingIA.Harness.Tests.LensTests.Run(Check, FindLensDir());
 

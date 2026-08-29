@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CoachingIA.Harness.Core;
+using CoachingIA.Harness.Core.Coaching;
 using CoachingIA.Harness.Core.Transcripts;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
@@ -9,6 +10,13 @@ using OpenTelemetry.Trace;
 var builder = WebApplication.CreateBuilder(args);
 
 var options = builder.Configuration.GetSection("Harness").Get<HarnessOptions>() ?? new HarnessOptions();
+
+// Meme corpus de maturite que le CLI : les deux voies de collecte doivent
+// nommer les signaux de la meme facon, sinon un bilan et une trace Phoenix
+// raconteraient deux paliers differents pour le meme geste.
+SignalSpecs.Use(MaturityCorpus.Load(
+    string.IsNullOrWhiteSpace(options.LensDirectory) ? null : options.LensDirectory));
+
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton(sp => new SessionRegistry(options.SessionIdleTimeout));
 builder.Services.AddSingleton<SpanFactory>();

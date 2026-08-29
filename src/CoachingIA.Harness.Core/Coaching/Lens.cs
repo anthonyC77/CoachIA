@@ -156,6 +156,14 @@ public sealed class LensCatalog
 
         foreach (var file in Directory.EnumerateFiles(directory, "*.json"))
         {
+            // Le corpus de maturité vit dans le même dossier sans être une
+            // lentille : il décrit ce qu'on apprend, pas les mots pour le dire.
+            // L'exclusion est nominative plutôt que devinée — un fichier qui
+            // « ne ressemble pas à une lentille » est un critère qui se retourne
+            // contre le premier pack un peu pauvre.
+            if (string.Equals(Path.GetFileName(file), MaturityCorpus.FileName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             try
             {
                 var lens = JsonSerializer.Deserialize<Lens>(File.ReadAllText(file), Lens.Json);
@@ -196,19 +204,17 @@ public sealed class LensCatalog
 
     public bool Knows(string id) => _lenses.ContainsKey(id);
 
+    /// <summary>
+    /// La lentille de secours. Les paliers viennent du corpus de maturité : ils
+    /// décrivent ce qu'on apprend, pas la façon de le dire, et les recopier ici
+    /// aurait créé deux vérités à tenir d'accord.
+    /// </summary>
     private static Lens BuiltInNeutral() => new()
     {
         Id = "neutre",
         Name = "Neutre",
         Tagline = "Sans métaphore. Le métier suffit.",
-        Levels = new Dictionary<string, LevelLens>(StringComparer.Ordinal)
-        {
-            ["1"] = new() { Term = "Prompt", Analogy = "Formuler une intention que le modèle peut exécuter sans deviner.", Pitfall = "Lancer sans dire à quoi ressemble le résultat attendu." },
-            ["2"] = new() { Term = "Contexte", Analogy = "Traiter la fenêtre comme une ressource rare.", Pitfall = "Attendre la saturation au lieu de compacter." },
-            ["3"] = new() { Term = "Harnais", Analogy = "Équiper l'agent plutôt que le corriger.", Pitfall = "Tout faire à la main quand un outil existe." },
-            ["4"] = new() { Term = "Boucle", Analogy = "Laisser l'agent tourner jusqu'à un critère vérifiable.", Pitfall = "Reprendre la main à chaque étape." },
-            ["5"] = new() { Term = "Graphe", Analogy = "Orchestrer des agents spécialisés qui se passent le relais.", Pitfall = "Rejouer un nœud échoué à l'identique." },
-        },
+        Levels = new Dictionary<string, LevelLens>(MaturityCorpus.BuiltIn.Levels, StringComparer.Ordinal),
     };
 }
 
@@ -244,8 +250,23 @@ public sealed class LensWriter(Lens lens, string? race = null, int? cycle = null
     public LensedMessage ForSignal(string signalKey, string fact)
         => new(fact, Pick(Side?.Signals, Lens.Signals, signalKey));
 
+    /// <summary>
+    /// La scène d'une problématique, avec repli sur le signal qui la révèle.
+    ///
+    /// C'est ce repli qui rend l'arrivée des problématiques indolore : les packs
+    /// écrits quand seul le signal existait — une centaine de scènes — continuent
+    /// de répondre sans être retouchés, exactement comme
+    /// <see cref="VariantsConverter"/> lit encore les packs d'avant les tableaux.
+    /// </summary>
+    public LensedMessage ForProblem(string? problemId, string signalKey, string fact)
+        => new(fact, Pick(Side?.Signals, Lens.Signals, problemId, signalKey));
+
     public LensedMessage ForChallenge(string signalKey, string statement)
         => new(statement, Pick(Side?.Challenges, Lens.Challenges, signalKey));
+
+    /// <summary>Le défi d'une problématique, avec le même repli que les scènes.</summary>
+    public LensedMessage ForChallenge(string? problemId, string signalKey, string statement)
+        => new(statement, Pick(Side?.Challenges, Lens.Challenges, problemId, signalKey));
 
     public LensedMessage ForMoment(string momentKey, string fact)
         => new(fact, Pick(Side?.Moments, Lens.Moments, momentKey));
@@ -258,14 +279,31 @@ public sealed class LensWriter(Lens lens, string? race = null, int? cycle = null
     }
 
     /// <summary>
-    /// Le camp d'abord, la lentille ensuite. Une clé vide dans le pack de race
-    /// ne masque pas la version générique : elle est simplement ignorée.
+    /// Le camp d'abord, la lentille ensuite — et, dans chacun, la clé la plus
+    /// précise d'abord.
+    ///
+    /// L'ordre entre les deux axes n'est pas neutre : on épuise tout le pack du
+    /// camp avant de retomber sur le générique. Une scène vécue de son côté de
+    /// la carte parle mieux qu'une scène mieux ciblée mais racontée d'ailleurs,
+    /// et c'est déjà la règle que suivait le pack de race.
+    ///
+    /// Une clé vide, absente ou sans scène ne masque jamais la suivante.
     /// </summary>
-    private string? Pick(Dictionary<string, string[]>? first, Dictionary<string, string[]> then, string key)
+    private string? Pick(Dictionary<string, string[]>? first, Dictionary<string, string[]> then, params string?[] keys)
     {
-        if (first is not null && first.TryGetValue(key, out var mine) && mine.Length > 0)
-            return VariantPicker.Pick(mine, key, Cycle);
-        return VariantPicker.Pick(then.GetValueOrDefault(key), key, Cycle);
+        return In(first) ?? In(then);
+
+        string? In(Dictionary<string, string[]>? pack)
+        {
+            if (pack is null) return null;
+            foreach (var key in keys)
+            {
+                if (string.IsNullOrEmpty(key)) continue;
+                if (pack.TryGetValue(key, out var scenes) && scenes.Length > 0)
+                    return VariantPicker.Pick(scenes, key, Cycle);
+            }
+            return null;
+        }
     }
 
     public LevelLens ForLevel(int level)

@@ -1,0 +1,326 @@
+{
+  "//": "Le corpus de maturité : ce qu'on apprend, indépendamment des mots pour le dire.",
+  "//1": "Les lentilles (starcraft2, echecs, neutre) posent un vocabulaire par-dessus.",
+  "//2": "Elles ne changent ni une cible, ni un signal, ni un conseil — seulement les mots.",
+  "version": "1",
+
+  "paliers": {
+    "1": {
+      "term": "Prompt",
+      "analogy": "Formuler une intention que le modèle peut exécuter sans deviner : l'objectif, les contraintes, le format attendu, et de quoi savoir que c'est fini.",
+      "pitfall": "Lancer sans critère d'acceptation, puis réparer au deuxième message."
+    },
+    "2": {
+      "term": "Contexte",
+      "analogy": "Traiter la fenêtre comme une ressource rare : charger le juste nécessaire, compacter avant d'être compacté, isoler ce qui est jetable.",
+      "pitfall": "Attendre la saturation au lieu de choisir ce qu'on garde."
+    },
+    "3": {
+      "term": "Harnais",
+      "analogy": "Équiper l'agent plutôt que le corriger : skills, sous-agents, serveurs MCP, hooks, et surtout une vérification automatique.",
+      "pitfall": "Refaire à la main ce qu'un outil ferait mieux, et relire au lieu de tester."
+    },
+    "4": {
+      "term": "Boucle",
+      "analogy": "Décomposer, paralléliser ce qui est indépendant, et fermer la boucle sur un critère vérifiable plutôt que sur un « stop » humain.",
+      "pitfall": "Reprendre la main à chaque étape, ce qui coûte le temps qu'on croyait gagner."
+    },
+    "5": {
+      "term": "Graphe",
+      "analogy": "Orchestrer des agents spécialisés qui se passent le relais, et qui rejouent autrement — pas à l'identique — quand un nœud échoue.",
+      "pitfall": "Multiplier les agents génériques et confondre relance et correction."
+    }
+  },
+
+  "//3": "Les problématiques : l'unité de discours du coach. Un signal se mesure,",
+  "//4": "une problématique se raconte — et c'est à elle qu'on attache plusieurs images.",
+  "problematiques": [
+    {
+      "id": "demande_non_executable",
+      "palier": 1,
+      "titre": "La demande n'est pas exécutable telle quelle",
+      "signaux": ["has_acceptance_criteria", "rework_ratio", "first_try_success", "prompts_per_task"],
+      "defi": {
+        "signal": "has_acceptance_criteria",
+        "enonce": "Lancez trois tâches d'affilée avec, dans le premier message, de quoi savoir que c'est fini.",
+        "pourquoi": "Vos prompts initiaux ne disent presque jamais à quoi ressemble le résultat attendu : la reprise arrive au deuxième message.",
+        "verification": "has_acceptance_criteria sur les tâches de la semaine"
+      }
+    },
+    {
+      "id": "fenetre_subie",
+      "palier": 2,
+      "titre": "La fenêtre est subie, pas pilotée",
+      "signaux": ["context_pressure", "cache_read_ratio", "compaction_mode", "context_isolation"],
+      "defi": {
+        "signal": "compaction_mode",
+        "enonce": "Compactez deux fois avant la saturation, en disant ce qu'il faut garder.",
+        "pourquoi": "Vos compactions sont subies plutôt que choisies : elles arrivent quand la fenêtre est déjà pleine.",
+        "verification": "PreCompact déclenché manuellement",
+        "besoin_hooks": true,
+        "cible": 0.70,
+        "plus_haut_est_mieux": true
+      }
+    },
+    {
+      "id": "chargement_large",
+      "palier": 2,
+      "titre": "On charge large là où on pourrait viser",
+      "signaux": ["load_precision"],
+      "defi": {
+        "signal": "load_precision",
+        "enonce": "Avant chaque lecture de fichier entier, lancez d'abord une recherche ciblée.",
+        "pourquoi": "Beaucoup de fichiers sont lus en entier là où une recherche aurait suffi : la fenêtre se remplit de lignes que personne ne relira.",
+        "verification": "load_precision sur les tâches de la semaine"
+      }
+    },
+    {
+      "id": "agent_non_equipe",
+      "palier": 3,
+      "titre": "L'agent est corrigé au lieu d'être équipé",
+      "signaux": ["harness_breadth", "tool_failure_rate", "skill_usage_rate", "mcp_utilization"],
+      "defi": {
+        "signal": "harness_breadth",
+        "enonce": "Prenez la chose que vous réexpliquez le plus souvent, et faites-en une skill cette semaine.",
+        "pourquoi": "Votre outillage reste étroit : les mêmes explications repartent à chaque session au lieu d'être outillées une fois pour toutes.",
+        "verification": "harness_breadth sur les tâches de la semaine"
+      }
+    },
+    {
+      "id": "rien_ne_prouve",
+      "palier": 3,
+      "titre": "Rien ne prouve que ça marche",
+      "signaux": ["verification_present"],
+      "defi": {
+        "signal": "verification_present",
+        "enonce": "Terminez chaque tâche de la semaine par une vérification automatique, pas par une relecture.",
+        "pourquoi": "La plupart de vos tâches se closent sans qu'un test, un build ou un lint n'ait tourné.",
+        "verification": "verification_present sur les tâches d'édition"
+      }
+    },
+    {
+      "id": "boucle_incomplete",
+      "palier": 4,
+      "titre": "La boucle ne va pas au bout toute seule",
+      "signaux": ["autonomy_ratio", "loop_closure", "parallelism_index", "plan_structure"],
+      "defi": {
+        "signal": "loop_closure",
+        "enonce": "Fermez trois boucles sur un test vert plutôt que sur votre propre « stop ».",
+        "pourquoi": "Vos boucles s'arrêtent quand vous reprenez la main, pas quand quelque chose a confirmé que ça marche.",
+        "verification": "loop_closure sur les tâches closes"
+      }
+    },
+    {
+      "id": "echec_sans_lecon",
+      "palier": 5,
+      "titre": "Un échec ne change pas la stratégie",
+      "signaux": ["self_correction", "graph_depth"],
+      "defi": {
+        "signal": "self_correction",
+        "enonce": "Après un échec, changez de stratégie : aucun nœud rejoué à l'identique cette semaine.",
+        "pourquoi": "Certains outils sont relancés avec exactement les mêmes paramètres après avoir échoué.",
+        "verification": "self_correction sur les rejeux"
+      }
+    }
+  ],
+
+  "//5": "Les signaux. « cible » absente = mesuré mais jamais reproché : le signal",
+  "//6": "s'affiche et compte dans les tendances, il ne déclenche aucune observation.",
+  "//7": "C'est le garde-fou anti-Goodhart : on ne gronde pas quelqu'un pour un",
+  "//8": "chiffre dont on ne sait pas dire honnêtement où il devrait être.",
+  "signaux": [
+    {
+      "cle": "has_acceptance_criteria",
+      "palier": 1,
+      "cible": 0.6,
+      "plus_haut_est_mieux": true,
+      "constat": "vos prompts initiaux disent rarement à quoi ressemble le résultat attendu",
+      "eloge": "vos prompts disent maintenant à quoi ressemble le résultat attendu",
+      "conseil": "Terminez chaque prompt par une phrase qui commence par « c'est fini quand ». Si vous n'arrivez pas à la finir, c'est que la tâche n'est pas encore définie — et c'est ça qu'il faut régler avant d'envoyer."
+    },
+    {
+      "cle": "rework_ratio",
+      "palier": 1,
+      "cible": 0.30,
+      "plus_haut_est_mieux": false,
+      "constat": "il faut souvent reprendre après le premier message",
+      "eloge": "vous reprenez nettement moins après le premier message",
+      "conseil": "Avant d'envoyer, relisez votre prompt en vous demandant ce qu'un collègue qui arrive sur le projet vous demanderait. Ces questions-là sont exactement celles qui reviendront au deuxième message."
+    },
+    {
+      "cle": "first_try_success",
+      "palier": 1,
+      "cible": 0.50,
+      "plus_haut_est_mieux": true,
+      "constat": "peu de tâches aboutissent sans relance",
+      "eloge": "davantage de tâches aboutissent sans relance",
+      "conseil": "Découpez. Deux demandes précises aboutissent plus souvent qu'une demande large, et une reprise sur une petite tâche coûte moins cher qu'une reprise sur une grande."
+    },
+    {
+      "cle": "prompts_per_task",
+      "palier": 1,
+      "ratio": false,
+      "constat": "nombre de prompts par tâche",
+      "commentaire": "Un compteur, pas un défaut : beaucoup de prompts peut signifier une conversation vivante comme une demande floue. C'est rework_ratio qui tranche."
+    },
+    {
+      "cle": "context_pressure",
+      "palier": 2,
+      "cible": 0.80,
+      "plus_haut_est_mieux": false,
+      "constat": "vous travaillez près du plafond de la fenêtre",
+      "eloge": "vous laissez plus de marge dans la fenêtre",
+      "conseil": "Compactez vers 60 % d'occupation plutôt qu'en butée, et dites ce qu'il faut garder : les décisions prises et les contraintes, pas le détail des fichiers déjà lus."
+    },
+    {
+      "cle": "cache_read_ratio",
+      "palier": 2,
+      "cible": 0.50,
+      "plus_haut_est_mieux": true,
+      "constat": "le cache joue peu : le même contexte est relu et repayé",
+      "eloge": "le cache travaille pour vous",
+      "conseil": "Gardez le début de session stable — même dossier de travail, mêmes fichiers de contexte, mêmes instructions. Chaque changement en tête de conversation fait repayer tout ce qui suit."
+    },
+    {
+      "cle": "load_precision",
+      "palier": 2,
+      "cible": 0.40,
+      "plus_haut_est_mieux": true,
+      "constat": "beaucoup de fichiers lus en entier là où une recherche ciblée suffirait",
+      "eloge": "vos lectures sont plus ciblées",
+      "conseil": "Cherchez avant de lire. Un Grep sur le nom du symbole coûte cent fois moins qu'un fichier entier, et il vous dit quelle portion mérite d'être ouverte."
+    },
+    {
+      "cle": "context_isolation",
+      "palier": 2,
+      "ratio": false,
+      "constat": "tours délégués à un sous-agent",
+      "commentaire": "Déléguer isole le contexte, mais tout déléguer le disperse. Aucune cible honnête tant qu'on n'a pas mesuré ce qui marche."
+    },
+    {
+      "cle": "compaction_mode",
+      "palier": 2,
+      "source": "hooks",
+      "constat": "les compactions sont subies plutôt que choisies",
+      "eloge": "vous compactez avant d'y être forcé",
+      "conseil": "Compactez vous-même quand vous changez de sujet, en disant ce qu'il faut garder. Une compaction subie garde ce qu'elle peut ; une compaction choisie garde ce qui compte.",
+      "commentaire": "Sans cible ici : les transcripts ne portent pas la compaction, seuls les hooks la voient. Le défi de « fenêtre subie » porte sa propre cible, comme il le faisait déjà."
+    },
+    {
+      "cle": "harness_breadth",
+      "palier": 3,
+      "cible": 4,
+      "plus_haut_est_mieux": true,
+      "ratio": false,
+      "constat": "l'outillage reste étroit",
+      "eloge": "votre outillage s'est élargi",
+      "conseil": "Prenez une chose que vous réexpliquez souvent et faites-en une skill. C'est le geste qui transforme une habitude en outil, et il ne se fait qu'une fois."
+    },
+    {
+      "cle": "tool_failure_rate",
+      "palier": 3,
+      "cible": 0.15,
+      "plus_haut_est_mieux": false,
+      "constat": "les outils échouent souvent, ce qui trahit un harnais mal réglé",
+      "eloge": "vos outils échouent moins",
+      "conseil": "Quand un outil échoue deux fois de suite, le problème est dans son cadrage, pas dans le modèle : donnez le chemin exact, la commande complète, le répertoire de travail."
+    },
+    {
+      "cle": "verification_present",
+      "palier": 3,
+      "cible": 0.70,
+      "plus_haut_est_mieux": true,
+      "constat": "la plupart des tâches se closent sans qu'un test ait tourné",
+      "eloge": "vos tâches se terminent plus souvent sur une vérification",
+      "conseil": "Finissez par la commande qui prouve. Même imparfaite, une commande qui tourne bat une relecture attentive — et elle se rejoue à chaque fois."
+    },
+    {
+      "cle": "skill_usage_rate",
+      "palier": 3,
+      "constat": "part des appels qui passent par une skill",
+      "commentaire": "Une skill non appelée n'est pas un défaut : elle peut simplement ne pas servir cette semaine-là."
+    },
+    {
+      "cle": "mcp_utilization",
+      "palier": 3,
+      "constat": "part des appels qui vont vers un serveur MCP",
+      "commentaire": "Aucune cible, délibérément. Reprocher de ne pas appeler MCP pousserait à l'appeler pour rien — exactement la métrique gameable que le projet refuse."
+    },
+    {
+      "cle": "autonomy_ratio",
+      "palier": 4,
+      "cible": 8,
+      "plus_haut_est_mieux": true,
+      "ratio": false,
+      "constat": "vous reprenez la main très vite",
+      "eloge": "vous laissez la boucle aller plus loin",
+      "conseil": "Donnez la boucle entière au lieu d'un ordre par étape : « fais X, lance les tests, corrige jusqu'à ce qu'ils passent ». Vous reprendrez la main au résultat, pas à chaque pas."
+    },
+    {
+      "cle": "parallelism_index",
+      "palier": 4,
+      "cible": 0.15,
+      "plus_haut_est_mieux": true,
+      "constat": "les outils indépendants partent un par un",
+      "eloge": "vous lancez ensemble ce qui est indépendant",
+      "conseil": "Demandez explicitement les lectures indépendantes en une fois : « lis A, B et C, puis dis-moi ». L'agent parallélise s'il sait que rien ne dépend de rien."
+    },
+    {
+      "cle": "loop_closure",
+      "palier": 4,
+      "cible": 0.60,
+      "plus_haut_est_mieux": true,
+      "constat": "les boucles s'arrêtent sur votre « stop » plutôt que sur un test vert",
+      "eloge": "vos boucles se ferment plus souvent sur une vérification",
+      "conseil": "Ne dites pas quand vous arrêter, dites à quoi on reconnaît que c'est fini. La différence tient en une phrase et change qui décide de la fin."
+    },
+    {
+      "cle": "plan_structure",
+      "palier": 4,
+      "constat": "part des tâches décomposées explicitement",
+      "commentaire": "Décomposer une tâche courte n'a aucun intérêt. Le signal n'a de sens que rapporté à la taille, ce qui n'est pas encore mesuré."
+    },
+    {
+      "cle": "graph_depth",
+      "palier": 5,
+      "ratio": false,
+      "constat": "le travail reste porté par un seul agent",
+      "commentaire": "Mesuré et raconté par la lentille, sans cible : lancer des sous-agents pour en lancer ne vaut rien, et le bon nombre dépend de la tâche."
+    },
+    {
+      "cle": "self_correction",
+      "palier": 5,
+      "cible": 0.50,
+      "plus_haut_est_mieux": true,
+      "constat": "des outils sont rejoués à l'identique après un échec",
+      "eloge": "vous changez de stratégie après un échec",
+      "conseil": "Si la même approche échoue deux fois, nommez le changement d'angle : « autre méthode : … ». Relancer à l'identique n'est pas se corriger, c'est espérer."
+    }
+  ],
+
+  "//9": "Les moments : une observation d'une ligne, glissée au début de la session",
+  "//10": "suivante. {tache}, {reprises} et {preuve} sont remplis par le détecteur.",
+  "moments": [
+    {
+      "cle": "rework",
+      "texte": "Hier, « {tache} » a demandé {reprises} reprises. Un critère d'acceptation dans le premier message en aurait probablement évité deux."
+    },
+    {
+      "cle": "abandon",
+      "texte": "« {tache} » s'est arrêtée sans aboutir. Reprendre par ce qui a bloqué vaut mieux que repartir de zéro."
+    },
+    {
+      "cle": "tool_failures",
+      "texte": "Sur « {tache} », {preuve}. Souvent le signe d'un harnais mal réglé plutôt que d'un modèle distrait."
+    },
+    {
+      "cle": "no_verification",
+      "texte": "« {tache} » s'est terminée sans qu'aucun test n'ait tourné. C'est le point de bascule entre laisser l'agent travailler et devoir tout relire."
+    },
+    {
+      "cle": "compaction_subie",
+      "source": "hooks",
+      "texte": "La compaction est arrivée pendant que vous travailliez, pas quand vous l'avez décidée. Ce qu'elle a gardé, ce n'est pas vous qui l'avez choisi."
+    }
+  ]
+}

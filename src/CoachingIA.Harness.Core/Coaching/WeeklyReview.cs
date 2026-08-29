@@ -6,7 +6,8 @@ namespace CoachingIA.Harness.Core.Coaching;
 public sealed record Observation(
     int Level, string SignalKey, double Value, string Statement,
     string Evidence, string TaskTitle, DateOnly TaskDate, string Advice,
-    string? Flourish = null, string? LevelTerm = null);
+    string? Flourish = null, string? LevelTerm = null,
+    string? ProblemId = null, string? ProblemTitle = null);
 
 /// <summary>Ce qui a progressé depuis les semaines précédentes.</summary>
 public sealed record Progress(string SignalKey, int Level, double Before, double After, string Statement);
@@ -158,11 +159,18 @@ public sealed class WeeklyReviewBuilder
 
     /// <summary>
     /// Choisit les observations : les plus gros écarts d'abord, mais jamais deux
-    /// fois le même palier. Trois variations d'un même reproche donnent
+    /// fois la même problématique. Trois variations d'un même reproche donnent
     /// l'impression d'un coach qui n'a qu'une idée.
+    ///
+    /// La déduplication portait autrefois sur le palier, ce qui était une
+    /// approximation : « la fenêtre est subie » et « on charge large » sont deux
+    /// reproches distincts qui vivent tous deux au palier 2, et n'en retenir
+    /// qu'un taisait une moitié du problème. La problématique dit exactement ce
+    /// que le palier essayait d'approcher.
     /// </summary>
     private void AddObservations(WeeklyReview review, List<TaskSignals> tasks, Dictionary<string, double> averages, LensWriter writer)
     {
+        var corpus = SignalSpecs.Corpus;
         var candidates = new List<(double Gap, SignalSpec Spec, double Value)>();
         foreach (var spec in SignalSpecs.All)
         {
@@ -172,11 +180,15 @@ public sealed class WeeklyReviewBuilder
             candidates.Add((gap, spec, value));
         }
 
-        var usedLevels = new HashSet<int>();
+        var usedProblems = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (_, spec, value) in candidates.OrderByDescending(c => c.Gap))
         {
             if (review.Observations.Count >= MaxObservations) break;
-            if (!usedLevels.Add(spec.Level)) continue;
+
+            // Un signal sans problématique déclarée retombe sur son palier : le
+            // bilan reste lisible même si le corpus est en retard sur la mesure.
+            var problemId = corpus.ProblemOf(spec.Key);
+            if (!usedProblems.Add(problemId ?? "palier:" + spec.Level)) continue;
 
             // L'exemple est la tâche la plus représentative du défaut : celle où
             // le signal est au plus mal, pas une prise au hasard.
@@ -195,8 +207,10 @@ public sealed class WeeklyReviewBuilder
                 worst.Task.Title,
                 DateOnly.FromDateTime(worst.Task.StartedAt.UtcDateTime),
                 spec.Advice,
-                writer.ForSignal(spec.Key, spec.Complaint).Flourish,
-                writer.TermFor(spec.Level, "")));
+                writer.ForProblem(problemId, spec.Key, spec.Complaint).Flourish,
+                writer.TermFor(spec.Level, ""),
+                problemId,
+                problemId is null ? null : corpus.Problem(problemId)?.Title));
         }
     }
 
