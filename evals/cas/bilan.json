@@ -1,0 +1,68 @@
+{
+  "famille": "bilan",
+  "//": "Les promesses que le README dit tenues par le code. Chaque cas décrit des semaines synthétiques : « decalage » compte les semaines depuis le lundi d'origine fixe du producteur, « brouillon » produit des tâches sans critère d'acceptation, sans vérification et avec des reprises. La dernière semaine de la liste est celle qui est jugée.",
+  "//aucun-transcript": "Ces cas ne lisent jamais ~/.claude/projects : la porte des tests serait lente, non reproductible, et différente sur chaque poste.",
+
+  "epreuves": [
+    {
+      "id": "bilan-001",
+      "intitule": "une semaine brouillonne precedee d'une autre : des observations, aucune felicitation",
+      "etiquettes": ["socle"],
+      "entree": { "semaines": [
+        { "decalage": -2, "brouillon": true, "taches": 3 },
+        { "decalage": -1, "brouillon": true, "taches": 3 }
+      ]},
+      "attendu": {}
+    },
+    {
+      "id": "bilan-002",
+      "intitule": "une semaine propre apres une semaine brouillonne : la reussite doit franchir la cible",
+      "etiquettes": ["socle", "reussite"],
+      "entree": { "semaines": [
+        { "decalage": -2, "brouillon": true, "taches": 3 },
+        { "decalage": -1, "brouillon": false, "taches": 3 }
+      ]},
+      "attendu": {}
+    },
+    {
+      "id": "bilan-003",
+      "intitule": "une semaine seule, sans point de comparaison",
+      "etiquettes": ["socle"],
+      "entree": { "semaines": [
+        { "decalage": -1, "brouillon": true, "taches": 3 }
+      ]},
+      "attendu": {}
+    },
+    {
+      "id": "bilan-004",
+      "intitule": "une semaine chargee ne fait pas deborder le plafond de trois observations",
+      "etiquettes": ["socle", "plafond"],
+      "entree": { "semaines": [
+        { "decalage": -3, "brouillon": true, "taches": 2 },
+        { "decalage": -2, "brouillon": true, "taches": 4 },
+        { "decalage": -1, "brouillon": true, "taches": 6 }
+      ]},
+      "attendu": {}
+    },
+    {
+      "id": "bilan-005",
+      "intitule": "deux semaines propres : rien a reprocher ne doit rien inventer",
+      "etiquettes": ["cas-limite"],
+      "entree": { "semaines": [
+        { "decalage": -2, "brouillon": false, "taches": 3 },
+        { "decalage": -1, "brouillon": false, "taches": 3 }
+      ]},
+      "attendu": {}
+    },
+    {
+      "id": "bilan-006",
+      "intitule": "une semaine a tache unique reste lisible",
+      "etiquettes": ["cas-limite"],
+      "entree": { "semaines": [
+        { "decalage": -2, "brouillon": true, "taches": 3 },
+        { "decalage": -1, "brouillon": true, "taches": 1 }
+      ]},
+      "attendu": {}
+    }
+  ]
+}

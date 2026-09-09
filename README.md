@@ -1,4 +1,4 @@
-# CoachingIA — harnais d'observation
+﻿# CoachingIA — harnais d'observation
 
 Phases **00** (le tuyau), **01** (le parseur d'historique) et la brique temps
 réel de la phase **03**, d'après `docs/architecture-v0.3.html`.
@@ -90,6 +90,10 @@ dotnet run --project src/CoachingIA.Cli -- bilan --juge
 
 # La rétrospective des mois écoulés, en page web.
 dotnet run --project src/CoachingIA.Cli -- retro --lens starcraft2 --race zerg --mois 6
+
+# La campagne qui mesure l'outil lui-même — elle parle à qui maintient CoachingIA,
+# jamais à l'apprenant. 0 rien n'a bougé, 1 un écart à trancher, 2 rien mesuré.
+dotnet run --project src/CoachingIA.Cli -- evaluer
 ```
 
 `probe` est le livrable de la phase 00 : son rapport est **anonyme et
@@ -526,9 +530,15 @@ Vérifiez ensuite avec `/hooks`, qui liste ce qui est réellement chargé.
 
 ## Ce qui n'est pas encore là
 
-Volontairement absent : le juge LLM, le calcul des scores de palier, le serveur
-MCP, le contenu des skills pédagogiques, la persistance SQLite, la boucle
+Volontairement absent du coaching : le juge LLM, le calcul des scores de palier,
+le contenu des skills pédagogiques, la persistance SQLite, la boucle
 d'auto-apprentissage. Voir la roadmap dans le document d'architecture.
+
+Un juge existe bien, mais ailleurs et pour autre chose : dans la brique
+d'évaluation, `coachingia evaluer --juge` demande à `claude -p` son avis sur les
+mêmes questions que le code, et n'en garde que l'accord ou le désaccord. Il
+mesure l'outil, jamais l'apprenant, et rien de ce qu'il dit n'entre dans l'état
+approuvé — sans quoi le fichier de référence bougerait à chaque exécution.
 
 Le **coût** ne se lit pas dans les transcripts : ils donnent les jetons, pas le
 tarif. Il vient de l'export de dépense de l'organisation, qui porte déjà le
@@ -560,6 +570,7 @@ src/CoachingIA.Harness.Core/   logique pure, zéro dépendance externe
     SignalExtractor.cs         les signaux calculables sans juge LLM
     UsageAnalyzer.cs           jetons par semaine, modèles, types de travail, alertes
     SpendReportReader.cs       l'export de dépense de l'organisation
+  ClaudeCli.cs                 le seul endroit qui lance « claude -p » : deux tubes lus en parallele
   Coaching/
     Lens.cs                    les lentilles : chargement, repli, « fait d'abord »
     LensVariants.cs            plusieurs scènes par clé, et le tirage sans état
@@ -586,7 +597,7 @@ lenses/                        les packs de vocabulaire, camps compris (JSON, sa
 skills/                        le registre de voix des lentilles
     TranscriptIngestor.cs      conversation → spans, aux dates d'origine
     TranscriptProbe.cs         la sonde de format, anonyme
-src/CoachingIA.Cli/            probe / analyze / segment / usage / team / lens / defi / moment / bilan / retro / web / corpus
+src/CoachingIA.Cli/            probe / analyze / segment / usage / team / lens / defi / moment / bilan / retro / web / corpus / evaluer
     WebConsole.cs              la console locale : liste blanche, jeton, 127.0.0.1
 installeur/                    install.ps1, package.ps1, Installer-CoachingIA.bat
 src/CoachingIA.Mcp/            le serveur MCP du corpus (coachingia-mcp)

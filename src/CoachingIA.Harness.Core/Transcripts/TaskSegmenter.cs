@@ -88,6 +88,14 @@ public sealed class TaskSegmenter
         new(@"\b(ça|ca|cela|celui|celle|ceux|le même|la même|ce|cette|cet|il|elle|ils|elles|y|en)\b",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    /// <summary>
+    /// Le prompt s'appuie-t-il sur ce qui précède ? Exposé pour que la brique
+    /// d'évaluation fabrique ses épreuves contre la règle réelle plutôt que
+    /// contre une copie de la liste, qui dériverait en silence dès qu'on
+    /// touche à l'une des deux.
+    /// </summary>
+    public static bool EstReferentiel(string prompt) => Referential.IsMatch(prompt);
+
     /// <summary>Au-delà de ce silence, un nouveau prompt ouvre un nouveau sujet.</summary>
     public TimeSpan ContinuationWindow { get; init; } = TimeSpan.FromMinutes(25);
 

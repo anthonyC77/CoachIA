@@ -1,0 +1,153 @@
+{
+  "famille": "reecriture",
+  "//": "Des réécritures ENREGISTRÉES, jamais produites à l'instant : c'est ce qui permet de mesurer le respect des contraintes sans dépendre de la disponibilité du juge, et de rejouer le même cas dans six mois.",
+  "//contraintes": "Les cinq contraintes viennent de ClaudePromptCritic.BuildInstruction (PromptCritic.cs:142-147). Une contrainte écrite dans l'instruction et jamais mesurée est décorative.",
+  "//attendu": "« etiquettes » déclare ce que l'épreuve est censée faire dire à tel évaluateur. Les cas fabriqués pour violer une contrainte en portent toujours une : sans quoi on ne saurait jamais si l'évaluateur attrape encore quelque chose.",
+  "//prompts": "Tous synthétiques. Les deux premiers viennent de tests/Review.cs, écrits par l'auteur dans cet esprit.",
+
+  "epreuves": [
+    {
+      "id": "reec-001",
+      "intitule": "un prompt deja complet, rendu tel quel, ne viole aucune contrainte",
+      "etiquettes": ["socle"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "Facturation",
+        "source": "reference",
+        "original": "Corrige le calcul de TVA dans src/Billing/Invoice.cs, uniquement dans ce fichier.\nC'est fini quand dotnet test passe au vert, sans casser l'API publique.\nRenvoie le patch. Le taux vient d'une contrainte métier, à savoir la réforme 2024.\nVa jusqu'au bout sans me demander.",
+        "reecriture": "Corrige le calcul de TVA dans src/Billing/Invoice.cs, uniquement dans ce fichier.\nC'est fini quand dotnet test passe au vert, sans casser l'API publique.\nRenvoie le patch. Le taux vient d'une contrainte métier, à savoir la réforme 2024.\nVa jusqu'au bout sans me demander."
+      },
+      "attendu": { "etiquettes": {
+        "sans_invention": "conforme",
+        "longueur_bornee": "conforme",
+        "reste_francais": "conforme",
+        "sans_adresse_directe": "conforme",
+        "prompt_pas_explication": "conforme",
+        "couverture_rubrique": "conforme" } }
+    },
+    {
+      "id": "reec-002",
+      "intitule": "une reecriture plausible d'un prompt vague : elle gagne toute la grille, mais creve le plafond de longueur",
+      "etiquettes": ["socle", "tension"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "Facturation",
+        "source": "reference",
+        "original": "Regarde le module de facturation",
+        "reecriture": "Corrige le calcul de TVA dans le module de facturation, sans toucher à l'API publique. C'est fini quand les tests passent au vert. Le taux vient d'une contrainte métier, à savoir la réforme en cours. Va jusqu'au bout sans me demander."
+      },
+      "attendu": { "etiquettes": {
+        "sans_invention": "conforme",
+        "couverture_rubrique": "conforme" } }
+    },
+    {
+      "id": "reec-003",
+      "intitule": "le squelette hors ligne : il n'invente rien, mais il vouvoie et il rallonge",
+      "etiquettes": ["socle", "heuristique"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "Facturation",
+        "source": "heuristique",
+        "original": "Regarde le module de facturation",
+        "reecriture": "Regarde le module de facturation\n\n- Objectif : [le verbe et l'objet précis de la demande]\n- Périmètre : [le fichier ou le module concerné, et ce qu'il ne faut pas toucher]\n- Critère d'acceptation : [à quoi vous saurez que c'est fini]\n- Contexte utile : [ce que l'agent ne peut pas deviner]\n- Autonomie : [jusqu'où aller sans vous demander]\n- Contraintes : [ce qui ne doit pas bouger]\n- Format de sortie : [ce que vous attendez en retour]"
+      },
+      "attendu": { "etiquettes": {
+        "sans_invention": "conforme" } }
+    },
+    {
+      "id": "reec-004",
+      "intitule": "une reecriture qui ampute : elle perd des criteres que l'original portait",
+      "etiquettes": ["socle", "perte"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "Facturation",
+        "source": "reference",
+        "original": "Corrige le calcul de TVA dans src/Billing/Invoice.cs. C'est fini quand les tests passent. Va jusqu'au bout sans me demander.",
+        "reecriture": "Corrige le calcul de TVA."
+      },
+      "attendu": { "etiquettes": {
+        "couverture_rubrique": "non_conforme",
+        "sans_invention": "conforme",
+        "longueur_bornee": "conforme" } }
+    },
+
+    {
+      "id": "reec-v1",
+      "intitule": "FABRIQUEE FAUSSE : la reecriture invente un chemin de fichier absent de l'original",
+      "etiquettes": ["fabriquee-fausse", "sans_invention"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "TVA",
+        "source": "fabriquee",
+        "original": "Corrige le calcul de TVA. C'est fini quand les tests passent.",
+        "reecriture": "Corrige le calcul de TVA dans src/Billing/InvoiceCalculator.cs. C'est fini quand les tests passent."
+      },
+      "attendu": { "etiquettes": { "sans_invention": "non_conforme" } }
+    },
+    {
+      "id": "reec-v2",
+      "intitule": "FABRIQUEE FAUSSE : la reecriture invente un chiffre que personne n'a donne",
+      "etiquettes": ["fabriquee-fausse", "sans_invention"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "TVA",
+        "source": "fabriquee",
+        "original": "Corrige le calcul de TVA. C'est fini quand les tests passent.",
+        "reecriture": "Corrige le calcul de TVA avec un taux de 20 pour cent. C'est fini quand les tests passent."
+      },
+      "attendu": { "etiquettes": { "sans_invention": "non_conforme" } }
+    },
+    {
+      "id": "reec-v3",
+      "intitule": "FABRIQUEE FAUSSE : la reecriture depasse deux fois la longueur d'origine",
+      "etiquettes": ["fabriquee-fausse", "longueur_bornee"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "TVA",
+        "source": "fabriquee",
+        "original": "Corrige la TVA.",
+        "reecriture": "Corrige la TVA en reprenant le calcul de bout en bout, sans changer l'interface publique, et s'arrêter quand la vérification passe au vert sur l'ensemble du projet."
+      },
+      "attendu": { "etiquettes": { "longueur_bornee": "non_conforme", "sans_invention": "conforme" } }
+    },
+    {
+      "id": "reec-v4",
+      "intitule": "FABRIQUEE FAUSSE : la reecriture bascule en anglais",
+      "etiquettes": ["fabriquee-fausse", "reste_francais"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "TVA",
+        "source": "fabriquee",
+        "original": "Corrige le calcul de TVA. C'est fini quand les tests passent.",
+        "reecriture": "Fix the VAT computation in the billing module. The task is done when the tests pass."
+      },
+      "attendu": { "etiquettes": { "reste_francais": "non_conforme" } }
+    },
+    {
+      "id": "reec-v5",
+      "intitule": "FABRIQUEE FAUSSE : la reecriture commente le prompt au lieu d'en etre un",
+      "etiquettes": ["fabriquee-fausse", "prompt_pas_explication"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "TVA",
+        "source": "fabriquee",
+        "original": "Corrige le calcul de TVA. C'est fini quand les tests passent.",
+        "reecriture": "Voici le prompt réécrit : corrige le calcul de TVA dans le module de facturation, et arrête quand les tests passent."
+      },
+      "attendu": { "etiquettes": { "prompt_pas_explication": "non_conforme" } }
+    },
+    {
+      "id": "reec-v6",
+      "intitule": "FABRIQUEE FAUSSE : la reecriture s'adresse a l'auteur alors que l'original ne le faisait pas",
+      "etiquettes": ["fabriquee-fausse", "sans_adresse_directe"],
+      "origine": "synthetique",
+      "entree": {
+        "titre": "TVA",
+        "source": "fabriquee",
+        "original": "Corrige le calcul de TVA. C'est fini quand les tests passent.",
+        "reecriture": "Corrige le calcul de TVA comme vous l'aviez prévu, et arrête quand les tests passent."
+      },
+      "attendu": { "etiquettes": { "sans_adresse_directe": "non_conforme" } }
+    }
+  ]
+}

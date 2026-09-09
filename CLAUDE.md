@@ -1,54 +1,68 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> La spécification du produit, c'est **`README.md`** : les commandes, les règles de
+> conception du bilan, le système de lentilles, les garanties de vie privée. Long,
+> en français, à lire en premier. Ce fichier n'en répète rien — il n'ajoute que ce
+> qu'un agent doit savoir et qui n'y est pas.
 
-## What this is
+CoachingIA lit les transcripts JSONL de Claude Code (`~/.claude/projects/`) et, en option,
+des hooks HTTP temps réel, puis en tire des signaux de coaching : découpe en sessions et en
+tâches, signaux par tâche, bilan hebdomadaire, rétrospective. Tout est local — rien ne quitte
+le poste sauf les spans OTLP vers un Phoenix (Arize) local. L'outil **observe, il ne coache
+pas encore** : pas de juge LLM, pas de persistance au-delà des fichiers. Les paliers 1-5
+(`coaching.level`, `SignalSpec.Level`) sont décrits dans `docs/architecture-v0.*.html`.
 
-CoachingIA reads the JSONL transcripts Claude Code leaves under `~/.claude/projects/` (plus, optionally, real-time HTTP hooks) and turns them into coaching signals: session/task segmentation, per-task signals (context pressure, cache ratio, tool failure rate, etc.), weekly reviews (`bilan`), and multi-month retrospectives (`retro`). It is entirely local: no telemetry leaves the machine except spans sent to a local Phoenix (Arize) instance over OTLP. The project is French-first — code comments, CLI output, and docs are in French; keep new user-facing strings and comments in French to match.
+## Commandes
 
-The system currently **observes and does not coach yet** — no LLM judge, no persistence beyond files, no maturity scoring loop. See `docs/architecture-v0.*.html` for the roadmap and the "paliers" (levels 1-5) model referenced throughout the code (`coaching.level` span attribute, `SignalSpec.Level`).
+.NET SDK 10. Docker seulement pour la voie OpenTelemetry/Phoenix.
 
-Read `README.md` first — it is long, in French, and is the actual product spec (CLI commands, the weekly review's design rules, the lens/vocabulary system, privacy guarantees). This file only adds what a coding agent needs that isn't already there.
-
-## Build, test, run
-
-Requires .NET SDK 10 (`dotnet --version`). Docker is only needed for the OpenTelemetry/Phoenix path, not for the CLI.
-
-```powershell
-dotnet build                                        # whole solution (CoachingIA.slnx)
-dotnet run --project src/CoachingIA.Cli -- <command> # see below
-dotnet run --project tests/CoachingIA.Harness.Tests  # run all tests
-```
-
-There is no test framework (no xUnit/NUnit) — `tests/CoachingIA.Harness.Tests` is a plain console app. `Program.cs` builds a local `Check(condition, label)` closure and calls a sequence of static `*Tests.Run(Check, ...)` methods, one per suite (`Transcripts.cs`, `Usage.cs`, `Lenses.cs`, `Variants.cs`, `Review.cs`, `Retro.cs`, `Archive.cs`, plus inline hook/span checks at the top of `Program.cs`). It exits 1 if any check failed and prints `FAIL <label>` for each. There is no way to run a single named test other than commenting out the suites you don't want in `Program.cs` — this is expected, not a gap to fix.
-
-The first suite in `Program.cs` uses a real `ActivityListener` (not a mock) to capture spans emitted by `SpanFactory`, verifying trace shape (parent/child span IDs, span kind, durations, error status) without needing Phoenix running.
-
-`TreatWarningsAsErrors` is on solution-wide (`Directory.Build.props`) — a build with warnings fails.
-
-CLI commands (run via `dotnet run --project src/CoachingIA.Cli --`): `probe`, `analyze`, `segment`, `usage`, `team`, `lens`, `defi`, `moment`, `bilan`, `retro`, `web`. Run with no arguments for the full help text with options. `probe --root <dir>` is the fastest smoke check that transcript parsing still works against real data.
-
-To validate the hooks → harness → Phoenix pipe end-to-end without touching real Claude Code sessions: start Phoenix (`docker compose -f docker/docker-compose.yml up -d`), start the harness (`dotnet run --project src/CoachingIA.Harness`), then `pwsh scripts/smoke-test.ps1` — it replays a synthetic session and checks the harness reports 0 open spans afterward.
+- Générer : `dotnet build` — `TreatWarningsAsErrors` est actif pour toute la solution (`Directory.Build.props`), un avertissement fait échouer.
+- Vérifier : `dotnet run --project tests/CoachingIA.Harness.Tests` — code 1 si une vérification échoue, `FAIL <libellé>` par échec. La campagne d'évaluation est une section de ce même harnais (bannière `évaluation`).
+- Lancer : `dotnet run --project src/CoachingIA.Cli -- <commande>`. Sans argument, l'aide complète ; `probe --root <dir>` est le contrôle de fumée le plus rapide.
+- Évaluer seul : `dotnet run --project src/CoachingIA.Cli -- evaluer` — même composition que la porte du harnais, codes 0/1/2 (2 = rien mesuré, jamais à lire comme un vert). `--juge` y ajoute l'avis de `claude -p`, qui informe sans rien garder.
+- Bout en bout : Phoenix (`docker compose -f docker/docker-compose.yml up -d`), le harnais (`dotnet run --project src/CoachingIA.Harness`), puis `pwsh scripts/smoke-test.ps1`.
+- Approuver un nouvel état de référence d'évaluation : `$env:COACHINGIA_APPROUVER_EVALS = "true"` puis relancer les tests. **Depuis un terminal humain seulement** — un hook le bloque depuis un agent.
 
 ## Architecture
 
-Three .NET projects plus a French-only naming convention (`CoachingIA.Harness` = the web host, not "Harness" in the generic sense):
+Trois projets. `CoachingIA.Harness` désigne l'hôte web, pas un « harnais » au sens générique.
 
-- **`src/CoachingIA.Harness.Core`** — all logic, zero external NuGet dependency (only `Microsoft.AspNetCore.App` framework reference, for `Results`/hosting types shared with the web host). This is deliberate: the core must build and test fully offline. Two areas:
-  - Root + `Transcripts/`: the batch/replay path. `TranscriptReader` streams JSONL tolerantly (unreadable lines are counted, never fatal) → `TranscriptRecord` → `SessionBuilder` assembles `ConversationModel` (sessions/turns/tool calls) → `TaskSegmenter` splits turns into tasks using a lexical+temporal heuristic (explicitly called out in README as "a bet," logs its own decisions, expect to retune it) → `SignalExtractor` computes the per-task signals. `TranscriptIngestor` replays a `ConversationModel` into OpenTelemetry spans at their *original* timestamps (not replay time). `TranscriptProbe` produces the anonymous, shareable format-diagnostic report used by `probe`.
-  - `Coaching/`: everything downstream of signals. `SignalSpec` defines each signal's target/direction/level. `Lens` + `LensVariants` implement the vocabulary-skin system (see README "La lentille" section) — a lens changes wording only, never measurements/thresholds, and always falls back to the neutral lens key-by-key. `WeeklyReview`/`ReviewRenderer`/`HtmlReviewRenderer` build `bilan`; `Retrospective`/`HtmlRetrospectiveRenderer` build `retro`; `ReviewArchive` handles the "don't clobber, archive by mtime, no-op on identical regeneration" file-write rule described in README. `PromptRubric`/`PromptCritic` implement the seven-criteria prompt critique, with `IPromptCritic` swappable between the offline heuristic and a `claude -p` judge (`--juge`).
-- **`src/CoachingIA.Harness`** — the real-time path only: an ASP.NET minimal-API host mapping `POST /hooks/{eventName}` (Claude Code hook payloads → `SpanFactory` → OpenTelemetry spans exported via OTLP/gRPC to Phoenix), `POST /ingest` (triggers the batch replay path, so both collection routes converge on the same span model), `GET /health`, `GET /status`. `Routes.Map` in `Program.cs` is the explicit URL-segment → canonical hook-name table — don't try to derive it automatically, some names diverge on purpose (e.g. `post-tool-fail` → `PostToolUseFailure`). **Every hook handler must return fast and return 200**: a hook blocks the user's turn until it responds, so a coaching-side failure must never fail someone's Claude Code session. `IdleSweeper` force-closes spans whose session was never cleanly ended (editor killed, machine slept).
-- **`src/CoachingIA.Cli`** — the `coachingia` executable (`AssemblyName` is lowercase, unlike the project name). `Program.cs` is a straight top-level-statements script with one `int Xxx()` local function per subcommand; `WebConsole.cs` implements the `web` subcommand's local-only HTTP console (binds `127.0.0.1` only, allow-lists commands/options — arguments are passed as an array so there's no shell string to inject, served file paths are collapsed to a filename re-joined under the output directory, and a session token minted at startup is checked on every call). When touching `web`, preserve all three of those guarantees rather than just making the feature work.
+- **`Harness.Core`** — toute la logique, **zéro dépendance NuGet externe** (seule la référence de framework `Microsoft.AspNetCore.App`) : le cœur doit compiler et se tester hors ligne.
+  - `Transcripts/` : `TranscriptReader` (JSONL tolérant, une ligne illisible se compte et n'est jamais fatale) → `SessionBuilder` → `TaskSegmenter` → `SignalExtractor`. `TranscriptIngestor` rejoue en spans **aux horodatages d'origine**. Le segmenteur est une heuristique que le README appelle « un pari » : il journalise ses décisions et se retouche.
+  - `Coaching/` : tout ce qui suit les signaux — `SignalSpec`, les lentilles, `WeeklyReview`/`Retrospective` et leurs rendus, `ReviewArchive`, `PromptRubric`/`PromptCritic` (`IPromptCritic` bascule entre heuristique hors ligne et juge `claude -p`).
+  - `Evaluation/` : la brique qui mesure l'outil (`Bareme`, `Verdict`, `Epreuve`, `Campagne`). Elle parle à qui maintient CoachingIA, **jamais à l'apprenant**. `CampagneStandard` est la composition — producteurs, porte, juges — prise au même endroit par le harnais et par `coachingia evaluer` ; `Porte.Juger` en tire le code de sortie (0 rien n'a bougé, 1 un écart, **2 rien mesuré**). `JugeReecriture` mesure l'accord entre un évaluateur du code et `claude -p` : `Deterministe = false`, donc hors de la porte et hors de `verdict.json`, et sur demande seulement.
+  - `ClaudeCli.cs` : le seul endroit qui lance `claude -p`. Les deux tubes se lisent **en parallèle** de l'attente — les lire après coup bloquait l'enfant dès qu'il dépassait la taille d'un tube. Tout ce qui s'en sert reçoit un `IClaudeCli`, ce qui rend la chose éprouvable hors ligne.
+- **`Harness`** — la voie temps réel : `POST /hooks/{eventName}`, `POST /ingest` (le rejeu, pour que les deux voies convergent sur le même modèle de span), `/health`, `/status`. `Routes.Map` est la table explicite segment d'URL → nom canonique ; certains noms divergent exprès (`post-tool-fail` → `PostToolUseFailure`), ne pas la dériver. **Un hook répond vite et répond 200** : il bloque le tour de l'utilisateur, une panne côté coaching ne doit jamais faire tomber sa session.
+- **`Cli`** — l'exécutable `coachingia`, un script à une fonction locale `int Xxx()` par sous-commande. `WebConsole.cs` sert la console locale sous des garanties **à préserver, pas seulement à faire marcher** : liaison `127.0.0.1` seule, commandes et options en liste blanche, arguments passés en tableau (aucune chaîne shell à injecter), chemin servi réduit à son nom de fichier puis rejoint sous le dossier de sortie, jeton de session vérifié à chaque appel.
 
-Span/attribute conventions live in `OpenInference.cs`: `OI` holds OpenInference semantic-convention attribute names (Phoenix-native, e.g. `openinference.span.kind`, `input.value`) and `OI.Kind` (`AGENT`/`CHAIN`/`TOOL`/`LLM`/...); `Coach` holds project-specific additions layered on top (`coaching.level`, `coaching.signal`, `coaching.outcome`, `coaching.source` distinguishing transcript-replay spans from real-time hook spans). Both namespaces are additive — never repurpose an OpenInference attribute name for coaching-specific data.
+Hors code : `lenses/*.json`, `evals/` (le jeu d'épreuves et l'état approuvé), `skills/coach-starcraft2.md` (registre d'écriture des scènes). `_a_supprimer/` est une zone d'attente, pas de la source vivante.
 
-`lenses/*.json` are data, not code — `neutre`, `starcraft2`, `echecs`. Each lens can be further split by `race`/side (see `starcraft2.json`'s per-race scenes). `skills/coach-starcraft2.md` documents the register/tone rules for writing new StarCraft II scenes (lived scenes, not unit name-dropping). If you add scenes or a new lens, keep to the three code-enforced rules from the README: the factual sentence always precedes the image and stays true if the image is deleted; a lens never changes a measurement or threshold; the neutral lens must stay complete since every other lens falls back to it key-by-key.
+## Règles de ce dépôt
 
-`_a_supprimer/` is a to-be-deleted holding area (old tarballs) — do not treat it as active source.
+- **Français** dans les commentaires, les chaînes visibles et les libellés. Les noms de types sont un mélange assumé (`SegmentedTask`, `Problematique`, `SceneIssueLevel { Erreur, Doute }`) : suivre le voisinage. Les commentaires disent **pourquoi**, pas quoi.
+- **Il n'y a pas de framework de test.** `Program.cs` construit `Check(bool, string)` et appelle les suites l'une après l'autre ; une suite est `public static class XxxTests { public static void Run(Action<bool,string> check[, string lensDir]) }`, enregistrée par un appel littéral. **Le libellé est le critère** : une phrase française qui énonce la promesse et interpole la valeur obtenue. Lancer un test isolé demande de commenter les autres — c'est attendu, pas une lacune.
+- **Aucune vérification ne lit `~/.claude/projects/`.** Les sessions se fabriquent : lire les transcripts réels rendrait la suite lente, non reproductible et différente sur chaque poste.
+- **Une vérification rouge ne se supprime ni ne se contourne.** Elle se conteste par écrit : `TEST_CONTESTÉ: <libellé> — <raison>`. C'est un résultat valide.
+- **`evals/cas/` et `evals/verdict.json` sont l'étalon** : en `deny`, plus un hook sur Bash. On ne les modifie pas pour faire passer une campagne ; un écart s'approuve, il ne s'efface pas.
+- **`CaptureContent: false` est une coupure dure** : aucun texte de prompt ni de sortie d'outil ne part vers OpenTelemetry. Tout changement sur `SpanFactory` ou la lecture des payloads doit la préserver.
+- **`ReviewArchive.Write` ne s'écrase pas silencieusement** : identique → aucun fichier touché ; changé → l'ancien part dans `bilans/archives/`, horodaté par **sa propre** date de modification. Ne pas « simplifier » en écriture directe.
+- **Une lentille n'est qu'un habillage** : elle ne change jamais une mesure ni un seuil, la phrase factuelle précède l'image et reste vraie sans elle, et la lentille neutre reste complète puisque toutes les autres retombent dessus, clé par clé.
+- **Les attributs `OI.*` (OpenInference) et `Coach.*` sont additifs** : on ne détourne jamais un nom OpenInference pour y mettre une donnée de coaching.
+- `InvariantGlobalization` est actif : pas de `CultureInfo("fr-FR")` — les noms de mois et de jours sont des tableaux littéraux, et c'est pour ça.
+- OpenTelemetry est épinglé en `1.*` flottant exprès. Après un `dotnet restore`, le README demande de figer les versions résolues : le signaler plutôt que le changer en silence.
 
-## Working notes specific to this repo
+## Agents
 
-- Not currently a git repository (per environment info) — don't assume `git` history/blame is available.
-- `CoachingIA.Harness.csproj` pins OpenTelemetry packages with a floating `1.*` version deliberately (see README "Notes"); if you run `dotnet restore`, the README asks that resolved versions be pinned afterward rather than left floating — flag this to the user rather than silently changing it.
-- `CaptureContent: false` (in `appsettings.json`, under `Harness`) must keep working as a hard content cutoff — no prompt text or tool-output text may reach OpenTelemetry export when it's off. Any change touching `SpanFactory` or hook payload handling should preserve this.
-- `bilan`/`retro` write into the output directory (`bilans/` by default) via `ReviewArchive`, which intentionally refuses to overwrite a changed file silently (it archives the previous version under `bilans/archives/`, timestamped by that file's own mtime) and is a no-op when regenerated output is byte-identical. Don't "simplify" this into a plain overwrite.
+`testeur` pose l'oracle dans `tests/` et n'écrit aucune ligne de production ; `codeur` fait
+passer les vérifications sans toucher `tests/` ni `evals/` ; `relecteur` relit le diff contre
+les critères et ne modifie rien ; `evaluateur` joue la campagne et rapporte les écarts sans
+rien corriger. Le découpage d'un objectif en tâches et son exécution en worktrees parallèles
+sont déjà couverts par la commande **`chantier`**, installée au niveau utilisateur : on ne
+double pas ce workflow ici. Résultat de sous-agent : **≤ 20 lignes** — fichiers touchés,
+commande de vérification lancée, verdict.
+
+## Ce qui n'est pas encore là
+
+Côté coaching : le calcul des scores de palier, le contenu des skills pédagogiques, la
+persistance SQLite, la boucle d'auto-apprentissage. Aucun juge ne parle à l'apprenant —
+le seul qui existe mesure l'outil, pas la personne.

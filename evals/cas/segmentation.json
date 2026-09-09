@@ -1,0 +1,301 @@
+{
+  "famille": "segmentation",
+  "//": "Le jeu d'or de la découpe en tâches. Chaque tour est décrit par les cinq seules choses que IsNewTask consulte : la longueur du prompt, son ouverture parmi les listes fermées du code source, sa référentialité, l'écart de temps depuis le tour précédent, et l'aboutissement de ce tour. Aucun mot de l'apprenant n'y figure — ces épreuves sont partageables telles quelles.",
+  "//frontieres": "Les indices de tour qui ouvrent une tâche. Le tour 0 en ouvre toujours une.",
+  "//motifs": "Des fragments : la comparaison est par inclusion, pour ne pas casser sur une virgule déplacée.",
+
+  "epreuves": [
+    {
+      "id": "seg-001",
+      "intitule": "un tour seul ouvre la seule tâche de la session",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 120, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session"] }
+    },
+    {
+      "id": "seg-002",
+      "intitule": "deux prompts longs et autonomes ouvrent deux tâches",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 10, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-003",
+      "intitule": "un silence de quarante minutes ouvre un nouveau sujet",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 40, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "silence de 40 min"] }
+    },
+    {
+      "id": "seg-004",
+      "intitule": "une ouverture corrective repare la tache en cours, elle n'en ouvre pas",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 60, "ouverture": "non", "referentiel": false, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture corrective « non »"] }
+    },
+    {
+      "id": "seg-005",
+      "intitule": "une ouverture de continuation poursuit le meme sujet",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 60, "ouverture": "ok", "referentiel": false, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture de continuation « ok »"] }
+    },
+    {
+      "id": "seg-006",
+      "intitule": "une relance immediate apres un tour qui n'a pas rendu la main repare",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": false },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 2, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "n'avait pas rendu la main"] }
+    },
+    {
+      "id": "seg-007",
+      "intitule": "un prompt court et referentiel se rattache",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 50, "ouverture": "", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "prompt court (50 car.) et référentiel"] }
+    },
+    {
+      "id": "seg-008",
+      "intitule": "un prompt court mais sans pronom ouvre : la brievete seule ne rattache pas",
+      "etiquettes": ["cas-limite"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 50, "ouverture": "", "referentiel": false, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-009",
+      "intitule": "un prompt long et referentiel ouvre : la longueur l'emporte sur le pronom",
+      "etiquettes": ["cas-limite"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 200, "ouverture": "", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-010",
+      "intitule": "une correction apres une longue pause ouvre malgre tout : le silence est teste avant l'ouverture corrective",
+      "etiquettes": ["cas-limite", "ordre-des-regles"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 60, "ouverture": "non", "referentiel": false, "minutes_depuis": 40, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "silence de 40 min"] }
+    },
+    {
+      "id": "seg-011",
+      "intitule": "un tour non abouti repris six minutes plus tard ouvre : la fenetre de reparation est de cinq minutes",
+      "etiquettes": ["cas-limite"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": false },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 6, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-012",
+      "intitule": "trois corrections successives restent dans la meme tache",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 40, "ouverture": "non", "referentiel": false, "minutes_depuis": 2, "abouti": true },
+        { "longueur": 40, "ouverture": "corrige", "referentiel": false, "minutes_depuis": 2, "abouti": true },
+        { "longueur": 40, "ouverture": "revois", "referentiel": false, "minutes_depuis": 2, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": [
+        "premier tour de la session", "ouverture corrective « non »",
+        "ouverture corrective « corrige »", "ouverture corrective « revois »"] }
+    },
+    {
+      "id": "seg-013",
+      "intitule": "deux taches, chacune suivie de sa correction",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 40, "ouverture": "non", "referentiel": false, "minutes_depuis": 2, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 30, "abouti": true },
+        { "longueur": 40, "ouverture": "corrige", "referentiel": false, "minutes_depuis": 2, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 2], "motifs": [
+        "premier tour de la session", "ouverture corrective « non »",
+        "silence de 30 min", "ouverture corrective « corrige »"] }
+    },
+    {
+      "id": "seg-014",
+      "intitule": "« il manque » est correctif, et referentiel par construction",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 60, "ouverture": "il manque", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture corrective « il manque »"] }
+    },
+    {
+      "id": "seg-015",
+      "intitule": "« ça ne marche » est correctif",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 60, "ouverture": "ça ne marche", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture corrective « ça ne marche »"] }
+    },
+    {
+      "id": "seg-016",
+      "intitule": "« en fait » est correctif",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 60, "ouverture": "en fait", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture corrective « en fait »"] }
+    },
+    {
+      "id": "seg-017",
+      "intitule": "un long prompt ouvrant par « et » se rattache : l'ouverture de continuation la plus large du jeu",
+      "etiquettes": ["cas-limite", "regle-large"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 200, "ouverture": "et ", "referentiel": false, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture de continuation « et"] }
+    },
+    {
+      "id": "seg-018",
+      "intitule": "un tour sans prompt humain se rattache",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 0, "ouverture": "", "referentiel": false, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "tour de continuation sans prompt"] }
+    },
+    {
+      "id": "seg-019",
+      "intitule": "un tour sans prompt se rattache meme apres un long silence : l'absence de prompt est testee avant le silence",
+      "etiquettes": ["cas-limite", "ordre-des-regles"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 0, "ouverture": "", "referentiel": false, "minutes_depuis": 40, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "tour de continuation sans prompt"] }
+    },
+    {
+      "id": "seg-020",
+      "intitule": "vingt-cinq minutes pile ne suffisent pas a ouvrir : la fenetre est stricte",
+      "etiquettes": ["cas-limite", "seuil"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 25, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-021",
+      "intitule": "vingt-six minutes ouvrent par le silence",
+      "etiquettes": ["cas-limite", "seuil"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 26, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "silence de 26 min"] }
+    },
+    {
+      "id": "seg-022",
+      "intitule": "cent-soixante caracteres pile ne comptent plus comme un prompt court",
+      "etiquettes": ["cas-limite", "seuil"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 160, "ouverture": "", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-023",
+      "intitule": "cent-cinquante-neuf caracteres referentiels se rattachent",
+      "etiquettes": ["cas-limite", "seuil"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 159, "ouverture": "", "referentiel": true, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "prompt court (159 car.) et référentiel"] }
+    },
+    {
+      "id": "seg-024",
+      "intitule": "cinq minutes pile apres un tour non abouti ouvrent : la fenetre de reparation est stricte",
+      "etiquettes": ["cas-limite", "seuil"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": false },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 5, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 1], "motifs": ["premier tour de la session", "prompt autonome"] }
+    },
+    {
+      "id": "seg-025",
+      "intitule": "quatre minutes apres un tour non abouti reparent",
+      "etiquettes": ["cas-limite", "seuil"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": false },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 4, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "n'avait pas rendu la main"] }
+    },
+    {
+      "id": "seg-026",
+      "intitule": "l'ouverture corrective est invoquee avant la regle du tour non abouti",
+      "etiquettes": ["cas-limite", "ordre-des-regles"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": false },
+        { "longueur": 60, "ouverture": "non", "referentiel": false, "minutes_depuis": 2, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture corrective « non »"] }
+    },
+    {
+      "id": "seg-027",
+      "intitule": "une session de cinq tours donne trois taches",
+      "etiquettes": ["socle"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 40, "ouverture": "non", "referentiel": false, "minutes_depuis": 2, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 30, "abouti": true },
+        { "longueur": 40, "ouverture": "ok", "referentiel": false, "minutes_depuis": 2, "abouti": true },
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 35, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0, 2, 4], "motifs": [
+        "premier tour de la session", "ouverture corrective « non »",
+        "silence de 30 min", "ouverture de continuation « ok »", "silence de 35 min"] }
+    },
+    {
+      "id": "seg-028",
+      "intitule": "« maintenant » poursuit, meme sur un prompt long",
+      "etiquettes": ["cas-limite", "regle-large"],
+      "entree": { "tours": [
+        { "longueur": 180, "ouverture": "", "referentiel": false, "minutes_depuis": 0, "abouti": true },
+        { "longueur": 200, "ouverture": "maintenant", "referentiel": false, "minutes_depuis": 3, "abouti": true }
+      ]},
+      "attendu": { "frontieres": [0], "motifs": ["premier tour de la session", "ouverture de continuation « maintenant »"] }
+    }
+  ]
+}

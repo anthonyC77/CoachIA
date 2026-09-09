@@ -19,3 +19,18 @@ CoachingIA-portable-*/
 
 # Archives de travail, vouées à disparaître.
 _a_supprimer/
+
+# Les épreuves tirées de vrais transcripts, et les campagnes qui les rejouent :
+# elles citent des prompts réels. Le jeu partageable (evals/cas/) et l'état
+# approuvé (evals/verdict.json) restent versionnés — eux ne citent personne.
+evals/prive/
+evals/journal/
+evals/rapport.html
+
+# Le cours « Evaluating AI Agents » : 30 Mo de labs, de captures et d'une
+# solution qui n'est pas celle-ci. On le garde sous la main sur le poste, pas
+# dans l'historique — il ne se retire plus une fois entré.
+EvaluatingAiAgents/
+
+# Caches Python de la chaîne eval/.
+__pycache__/

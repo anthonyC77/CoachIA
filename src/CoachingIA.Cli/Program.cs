@@ -58,6 +58,7 @@ if (command == "web")
         int.TryParse(Arg("--port"), out var p) ? p : 5099,
         Arg("--root"), outPath ?? "bilans", lensDir);
 if (command == "corpus") return CorpusCommand.Run(args, lensDir, lensId ?? "starcraft2", raceId);
+if (command == "evaluer") return EvaluerCommand.Run(args, lensDir);
 if (command == "lens") return Lentille();
 if (command == "team") return Team();
 
@@ -100,6 +101,10 @@ switch (command)
                         sur 127.0.0.1 (--port 5099 par défaut)
               corpus    le fond de connaissance d'une lentille : --valider les
                         scènes, --recolter les chiffres, --generer, --relire
+              evaluer   la campagne d'évaluation de l'outil lui-même, comparée à
+                        l'état approuvé : 0 rien n'a bougé, 1 un écart, 2 rien
+                        mesuré. --juge y ajoute l'avis de claude -p, qui informe
+                        sans jamais entrer dans l'état approuvé
 
             options : --root <dossier>  --out <fichier.json>  --limit <n>
                       --budget <jetons/semaine>  --weeks <n>  --csv <export.csv>

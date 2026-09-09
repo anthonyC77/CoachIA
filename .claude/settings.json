@@ -1,0 +1,52 @@
+{
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2",
+    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "5",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run --project tests/CoachingIA.Harness.Tests:*)",
+      "Bash(dotnet run --project src/CoachingIA.Cli:*)",
+      "Bash(dotnet --version)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git ls-files:*)",
+      "PowerShell(dotnet build:*)",
+      "PowerShell(dotnet run --project tests/CoachingIA.Harness.Tests:*)"
+    ],
+    "deny": [
+      "Edit(evals/cas/**)",
+      "Write(evals/cas/**)",
+      "Edit(evals/verdict.json)",
+      "Write(evals/verdict.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/garde-etalon.ps1\""
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "codeur",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/porte-tests.ps1\"",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}

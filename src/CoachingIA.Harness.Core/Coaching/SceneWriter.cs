@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -19,9 +18,15 @@ namespace CoachingIA.Harness.Core.Coaching;
 /// voix, les faits du corpus, une punition à mettre en scène, et les scènes
 /// déjà écrites pour ne pas les répéter.
 /// </summary>
-public sealed class SceneWriter(TimeSpan? timeout = null, string executable = "claude")
+public sealed class SceneWriter
 {
-    private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromMinutes(3);
+    private readonly IClaudeCli _cli;
+
+    public SceneWriter(TimeSpan? timeout = null, string executable = "claude")
+        : this(new ClaudeCli(timeout ?? TimeSpan.FromMinutes(3), executable)) { }
+
+    /// <summary>Pour lui donner un autre CLI que celui du poste — c'est ainsi qu'on l'éprouve hors ligne.</summary>
+    public SceneWriter(IClaudeCli cli) => _cli = cli;
 
     private const string Schema = """
         {"type":"object","properties":{
@@ -44,8 +49,8 @@ public sealed class SceneWriter(TimeSpan? timeout = null, string executable = "c
             return [];
         }
 
-        var json = Run(Instruction(corpus, spec, race, punishments, existing, count), out error);
-        if (json is null) return [];
+        var json = _cli.Demander(Instruction(corpus, spec, race, punishments, existing, count), Schema);
+        if (json is null) { error = _cli.DerniereErreur; return []; }
 
         try
         {
@@ -167,52 +172,6 @@ public sealed class SceneWriter(TimeSpan? timeout = null, string executable = "c
     private static string Shorten(string text)
         => text.Length <= 110 ? text : text[..110] + "…";
 
-    private string? Run(string instruction, out string? error)
-    {
-        error = null;
-        if (!Exists(executable)) { error = $"« {executable} » introuvable dans le PATH"; return null; }
-
-        var psi = new ProcessStartInfo(executable)
-        {
-            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
-            UseShellExecute = false, CreateNoWindow = true,
-        };
-        // Jamais --bare : ce mode ignore les identifiants d'abonnement et
-        // exigerait une clé d'API facturée à part.
-        psi.ArgumentList.Add("-p");
-        psi.ArgumentList.Add(instruction);
-        psi.ArgumentList.Add("--output-format"); psi.ArgumentList.Add("json");
-        psi.ArgumentList.Add("--json-schema"); psi.ArgumentList.Add(Schema);
-
-        using var process = Process.Start(psi);
-        if (process is null) { error = "le processus n'a pas démarré"; return null; }
-        process.StandardInput.Close();
-
-        var stdout = process.StandardOutput.ReadToEndAsync();
-        if (!process.WaitForExit((int)_timeout.TotalMilliseconds))
-        {
-            try { process.Kill(entireProcessTree: true); } catch { /* au mieux */ }
-            error = $"délai dépassé ({_timeout.TotalMinutes:F0} min)";
-            return null;
-        }
-        if (process.ExitCode != 0)
-        {
-            error = $"code de sortie {process.ExitCode} : {process.StandardError.ReadToEnd().Trim()}";
-            return null;
-        }
-        return stdout.GetAwaiter().GetResult();
-    }
-
-    private static bool Exists(string name)
-    {
-        if (Path.IsPathRooted(name)) return File.Exists(name);
-        var paths = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? [];
-        var extensions = OperatingSystem.IsWindows()
-            ? (Environment.GetEnvironmentVariable("PATHEXT") ?? ".EXE;.CMD;.BAT").Split(';')
-            : [""];
-        return paths.Any(dir => extensions.Any(ext =>
-            !string.IsNullOrWhiteSpace(dir) && File.Exists(Path.Combine(dir, name + ext))));
-    }
 }
 
 /// <summary>Une scène proposée, pas encore relue, donc invisible pour le coach.</summary>

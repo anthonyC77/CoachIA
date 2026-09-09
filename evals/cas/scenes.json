@@ -1,0 +1,96 @@
+{
+  "famille": "scene",
+  "//": "Une scène fautive par règle du SceneValidator, plus des scènes propres, plus le pack réellement livré. On enveloppe le validateur, on ne réécrit aucune de ses six règles.",
+  "//regles": "unité inconnue (doute), mauvais camp, invisible sans nom, détection mal attribuée, anti-aérien sans air, supply d'avant-patch, sans ancrage (doute).",
+  "//pourquoi-des-scenes-fausses": "Un validateur qui a cessé d'attraper ce qu'il prétend attraper se déclarerait vert sur un pack propre. Il faut lui donner de quoi mordre.",
+
+  "epreuves": [
+    {
+      "id": "scene-001",
+      "intitule": "une scene ancree et bien attribuee ne recolte aucun reproche",
+      "etiquettes": ["socle", "propre"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "rework_ratio",
+                  "texte": "Ton Overseer arrive trop tard, encore une fois." },
+      "attendu": { "regles": [] }
+    },
+    {
+      "id": "scene-002",
+      "intitule": "FABRIQUEE FAUSSE : la scene donne au joueur zerg une unite terran",
+      "etiquettes": ["fabriquee-fausse", "mauvais camp"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "rework_ratio",
+                  "texte": "Tes Marines tiennent la rampe pendant que l'Overlord regarde ailleurs." },
+      "attendu": { "regles": ["mauvais camp"] }
+    },
+    {
+      "id": "scene-003",
+      "intitule": "FABRIQUEE FAUSSE : la scene annonce une menace invisible sans jamais la nommer",
+      "etiquettes": ["fabriquee-fausse", "invisible sans nom"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "context_pressure",
+                  "texte": "Quelque chose d'invisible traverse ta base pendant que tes Zerglings courent ailleurs." },
+      "attendu": { "regles": ["invisible sans nom"] }
+    },
+    {
+      "id": "scene-004",
+      "intitule": "FABRIQUEE FAUSSE : la scene parle de detection en ne nommant que des unites qui ne detectent rien",
+      "etiquettes": ["fabriquee-fausse", "détection mal attribuée"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "context_pressure",
+                  "texte": "La détection manque toujours au bon moment, et tes Zerglings n'y peuvent rien." },
+      "attendu": { "regles": ["détection mal attribuée"] }
+    },
+    {
+      "id": "scene-005",
+      "intitule": "FABRIQUEE FAUSSE : la scene parle d'anti-aerien sans nommer une seule unite qui vole",
+      "etiquettes": ["fabriquee-fausse", "anti-aérien sans air"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "harness_breadth",
+                  "texte": "Ton anti-aérien n'existe pas, et tes Zerglings ne servent à rien contre ça." },
+      "attendu": { "regles": ["anti-aérien sans air"] }
+    },
+    {
+      "id": "scene-006",
+      "intitule": "FABRIQUEE FAUSSE : la scene cite une ouverture en supply absolu, perimee par le patch",
+      "etiquettes": ["fabriquee-fausse", "supply d'avant-patch"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "plan_structure",
+                  "texte": "Ouvrir en 14 pool et espérer que ça passe, c'est le même pari que tes Zerglings mal placés." },
+      "attendu": { "regles": ["supply d'avant-patch"] }
+    },
+    {
+      "id": "scene-007",
+      "intitule": "FABRIQUEE FAUSSE : la scene n'accroche aucun fait du corpus et pourrait servir n'importe quel univers",
+      "etiquettes": ["fabriquee-fausse", "sans ancrage"],
+      "entree": { "corpus": "starcraft2", "cle": "rework_ratio",
+                  "texte": "Tu relances la même demande trois fois et tu espères un autre résultat." },
+      "attendu": { "regles": ["sans ancrage"] }
+    },
+    {
+      "id": "scene-008",
+      "intitule": "FABRIQUEE FAUSSE : la scene cite une unite qui n'existe pas",
+      "etiquettes": ["fabriquee-fausse", "unité inconnue"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "tool_failure_rate",
+                  "texte": "Tes Zerglings meurent devant le Krataxis que tu n'avais pas vu venir." },
+      "attendu": { "regles": ["unité inconnue"] }
+    },
+    {
+      "id": "scene-009",
+      "intitule": "une scene de detection correctement attribuee passe : la menace et la reponse sont nommees",
+      "etiquettes": ["socle", "propre"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "context_pressure",
+                  "texte": "La détection arrive enfin avec ton Overseer, mais le Dark Templar a déjà mangé trois ouvriers." },
+      "attendu": { "regles": [] }
+    },
+    {
+      "id": "scene-010",
+      "intitule": "une scene anti-aerienne qui nomme une unite volante passe",
+      "etiquettes": ["socle", "propre"],
+      "entree": { "corpus": "starcraft2", "race": "zerg", "cle": "harness_breadth",
+                  "texte": "Ton anti-aérien se résume à un Overlord qui regarde passer la Banshee." },
+      "attendu": { "regles": [] }
+    },
+    {
+      "id": "scene-pack-starcraft2",
+      "intitule": "le pack reellement livre a l'apprenant ne porte aucune erreur",
+      "etiquettes": ["socle", "contenu-livre"],
+      "entree": { "pack": "starcraft2" },
+      "attendu": {}
+    }
+  ]
+}

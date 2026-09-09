@@ -1,0 +1,14 @@
+﻿# Les vérifications rouges déjà connues, et acceptées telles quelles.
+#
+# La porte de sortie du codeur (.claude/hooks/porte-tests.ps1) ne bloque que sur
+# une vérification qui n'est PAS dans cette liste. Même philosophie que
+# evals/verdict.json : on compare à un état approuvé, jamais à un seuil.
+#
+# Les trois ci-dessous visent des variantes de lentille que VariantPicker fait
+# tourner par semaine ; elles échouent selon la semaine, indépendamment du code.
+# Vérifié sur un arbre propre à HEAD (b12d98a) le 2026-09-05 : elles échouaient
+# déjà. Le jour où c'est réparé, on retire les lignes et la porte se resserre.
+
+la lentille StarCraft II habille bien le défi
+et l'image StarCraft II vient après
+l'image, elle, parle bien le zerg

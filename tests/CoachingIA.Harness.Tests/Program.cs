@@ -1,6 +1,12 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 using CoachingIA.Harness.Core;
+
+// Le harnais se relance lui-meme comme sonde : eprouver ClaudeCli demande un
+// vrai processus, et le seul executable dont on soit sur sur n'importe quel
+// poste, hors ligne, c'est celui-ci.
+if (args.Any(a => a.Contains(CoachingIA.Harness.Tests.SondeCli.Marqueur, StringComparison.Ordinal)))
+    return CoachingIA.Harness.Tests.SondeCli.Jouer(args);
 
 // Banc d'essai sans dependance externe : un ActivityListener capture les spans
 // produits par SpanFactory, exactement comme le ferait le SDK OpenTelemetry.
@@ -168,6 +174,28 @@ CoachingIA.Harness.Tests.ArchiveTests.Run(Check);
 
 Console.WriteLine("\n────────────────────────  critique de prompt  ────────────────────────\n");
 CoachingIA.Harness.Tests.PromptCriticTests.Run(Check);
+
+Console.WriteLine("\n─────────────────────────────  claude -p  ─────────────────────────────\n");
+CoachingIA.Harness.Tests.ClaudeCliTests.Run(Check);
+
+// En dernier, et ce n'est pas un hasard : la suite du corpus de maturité mute
+// la façade statique SignalSpecs, dont héritent toutes les suites qui suivent.
+// L'évaluation monte donc explicitement le sien plutôt que d'hériter d'un état
+// qui dépendrait de l'ordre des suites.
+Console.WriteLine("\n───────────────────────────  évaluation  ───────────────────────────\n");
+CoachingIA.Harness.Tests.EvaluationTests.Run(Check, FindRepoRoot());
+
+static string FindRepoRoot()
+{
+    var dir = AppContext.BaseDirectory;
+    for (var i = 0; i < 8 && dir is not null; i++)
+    {
+        if (Directory.Exists(Path.Combine(dir, "evals")) && Directory.Exists(Path.Combine(dir, "lenses")))
+            return dir;
+        dir = Path.GetDirectoryName(dir.TrimEnd(Path.DirectorySeparatorChar));
+    }
+    return ".";
+}
 
 Console.WriteLine();
 if (failures.Count == 0) { Console.WriteLine("Tout est vert."); return 0; }

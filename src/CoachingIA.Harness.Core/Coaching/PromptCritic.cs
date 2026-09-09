@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using CoachingIA.Harness.Core.Transcripts;
 
@@ -79,13 +78,24 @@ public sealed class HeuristicPromptCritic : IPromptCritic
 /// point de panne : on vérifie que le binaire existe, on borne le temps, et
 /// toute erreur rend la main à la critique hors ligne.
 /// </summary>
-public sealed class ClaudePromptCritic(IPromptCritic fallback, TimeSpan? timeout = null, string executable = "claude")
-    : IPromptCritic
+public sealed class ClaudePromptCritic : IPromptCritic
 {
-    private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromSeconds(90);
+    private readonly IPromptCritic _fallback;
+    private readonly IClaudeCli _cli;
+    private string? _erreur;
+
+    public ClaudePromptCritic(IPromptCritic fallback, TimeSpan? timeout = null, string executable = "claude")
+        : this(fallback, new ClaudeCli(timeout, executable)) { }
+
+    /// <summary>Pour lui donner un autre CLI que celui du poste — c'est ainsi qu'on l'éprouve hors ligne.</summary>
+    public ClaudePromptCritic(IPromptCritic fallback, IClaudeCli cli)
+    {
+        _fallback = fallback;
+        _cli = cli;
+    }
 
     /// <summary>Dernière erreur rencontrée, pour l'expliquer plutôt que la taire.</summary>
-    public string? LastError { get; private set; }
+    public string? LastError => _erreur ?? _cli.DerniereErreur;
 
     private const string Schema = """
         {"type":"object","properties":{
@@ -97,12 +107,13 @@ public sealed class ClaudePromptCritic(IPromptCritic fallback, TimeSpan? timeout
 
     public PromptCritique? Critique(string prompt, PromptContext context)
     {
-        var offline = fallback.Critique(prompt, context);
+        var offline = _fallback.Critique(prompt, context);
         if (offline is null) return null;      // le prompt est déjà complet
 
         try
         {
-            var json = Run(BuildInstruction(prompt, context, offline.Missing));
+            _erreur = null;
+            var json = _cli.Demander(BuildInstruction(prompt, context, offline.Missing), Schema);
             if (json is null) return offline;
 
             using var doc = JsonDocument.Parse(json);
@@ -117,7 +128,7 @@ public sealed class ClaudePromptCritic(IPromptCritic fallback, TimeSpan? timeout
         }
         catch (Exception ex)
         {
-            LastError = ex.Message;
+            _erreur = ex.Message;
             return offline;
         }
     }
@@ -149,52 +160,6 @@ public sealed class ClaudePromptCritic(IPromptCritic fallback, TimeSpan? timeout
             Renvoie « rewrite » (le prompt réécrit), « missing » (les éléments ajoutés,
             en quelques mots chacun) et « note » (une phrase sur ce qui change).
             """;
-    }
-
-    private string? Run(string instruction)
-    {
-        if (!Exists(executable)) { LastError = $"« {executable} » introuvable dans le PATH"; return null; }
-
-        var psi = new ProcessStartInfo(executable)
-        {
-            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
-            UseShellExecute = false, CreateNoWindow = true,
-        };
-        // Surtout pas --bare : ce mode ignore les identifiants d'abonnement et
-        // exigerait une clé d'API facturée séparément.
-        psi.ArgumentList.Add("-p");
-        psi.ArgumentList.Add(instruction);
-        psi.ArgumentList.Add("--output-format"); psi.ArgumentList.Add("json");
-        psi.ArgumentList.Add("--json-schema"); psi.ArgumentList.Add(Schema);
-
-        using var process = Process.Start(psi);
-        if (process is null) { LastError = "le processus n'a pas démarré"; return null; }
-        process.StandardInput.Close();
-
-        var stdout = process.StandardOutput.ReadToEndAsync();
-        if (!process.WaitForExit((int)_timeout.TotalMilliseconds))
-        {
-            try { process.Kill(entireProcessTree: true); } catch { /* au mieux */ }
-            LastError = $"délai dépassé ({_timeout.TotalSeconds:F0} s)";
-            return null;
-        }
-        if (process.ExitCode != 0)
-        {
-            LastError = $"code de sortie {process.ExitCode} : {process.StandardError.ReadToEnd().Trim()}";
-            return null;
-        }
-        return stdout.GetAwaiter().GetResult();
-    }
-
-    private static bool Exists(string name)
-    {
-        if (Path.IsPathRooted(name)) return File.Exists(name);
-        var paths = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? [];
-        var extensions = OperatingSystem.IsWindows()
-            ? (Environment.GetEnvironmentVariable("PATHEXT") ?? ".EXE;.CMD;.BAT").Split(';')
-            : [""];
-        return paths.Any(dir => extensions.Any(ext =>
-            !string.IsNullOrWhiteSpace(dir) && File.Exists(Path.Combine(dir, name + ext))));
     }
 }
 
