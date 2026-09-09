@@ -1,0 +1,66 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "nexus/tools/rechercher_documents/1",
+ "x-generated-by": "eval/gen_tool_schemas.py (stage 0 de Nexus.Tools.SourceGen)",
+ "x-source": "src/Nexus.Tools/Contracts/RechercherDocuments.cs",
+ "x-source-sha256": "53a640021e227ec14af7fef21a0d95446296f08b07532785529698b5de2b1019",
+ "name": "rechercher_documents",
+ "description": "Recherche hybride dans le référentiel ; renvoie les k meilleurs passages avec leur document source.",
+ "side_effect": false,
+ "input": {
+  "type": "object",
+  "properties": {
+   "query": {
+    "type": "string",
+    "description": "Question telle que posée par l'utilisateur"
+   },
+   "k": {
+    "type": "integer",
+    "description": "Nombre de passages à renvoyer",
+    "default": 5
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "query"
+  ]
+ },
+ "output": {
+  "type": "object",
+  "properties": {
+   "results": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "doc_id": {
+       "type": "string",
+       "description": "Identifiant du document tel que l'index le renvoie"
+      },
+      "chunk_id": {
+       "type": "string"
+      },
+      "score": {
+       "type": "number"
+      },
+      "text": {
+       "type": "string"
+      }
+     },
+     "additionalProperties": false,
+     "required": [
+      "doc_id",
+      "chunk_id",
+      "score",
+      "text"
+     ]
+    },
+    "description": "Passages classés par pertinence décroissante"
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "results"
+  ]
+ }
+}

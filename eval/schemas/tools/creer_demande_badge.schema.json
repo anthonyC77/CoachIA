@@ -1,0 +1,55 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "nexus/tools/creer_demande_badge/1",
+ "x-generated-by": "eval/gen_tool_schemas.py (stage 0 de Nexus.Tools.SourceGen)",
+ "x-source": "src/Nexus.Tools/Contracts/CreerDemandeBadge.cs",
+ "x-source-sha256": "d28020fa87ecc3efbe4d7311c21b0c52081384217172081adeac5d2ce244e8ed",
+ "name": "creer_demande_badge",
+ "description": "Ouvre une demande de badge d'accès pour une personne, au nom de l'identité SI du run.",
+ "side_effect": true,
+ "input": {
+  "type": "object",
+  "properties": {
+   "personne": {
+    "type": "string",
+    "description": "Nom complet de la personne"
+   },
+   "site": {
+    "type": "string",
+    "description": "Site d'affectation"
+   },
+   "type": {
+    "type": "string",
+    "description": "Type de badge : entreprise | prestataire"
+   },
+   "autorise_par": {
+    "type": "string",
+    "description": "Identifiant du responsable qui autorise la demande"
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "personne",
+   "site",
+   "type",
+   "autorise_par"
+  ]
+ },
+ "output": {
+  "type": "object",
+  "properties": {
+   "demande_id": {
+    "type": "string"
+   },
+   "statut": {
+    "type": "string",
+    "description": "Statut de la demande : ouverte | refusee"
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "demande_id",
+   "statut"
+  ]
+ }
+}

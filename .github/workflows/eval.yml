@@ -1,0 +1,22 @@
+name: eval
+# La CI lit les codes de sortie : 0 passe, 1 régression sous la tolérance de baseline.json, 2 erreur.
+# RESULTS_RETRIEVAL / RUNS_TASKS sont produits par un job amont qui parle au système déployé ;
+# à défaut (stage 0), les fixtures servent de fumée : le pipeline doit tourner sans serveur ni clé.
+on: [push, pull_request]
+jobs:
+  oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: tests unitaires des oracles
+        run: python3 -m unittest discover -s eval/tests -v
+      - name: un outil est un type (schémas générés, à jour, référencés)
+        run: python3 eval/check_tool_schemas.py
+      - name: eval retrieval (oracle mécanique, 0 appel LLM)
+        run: python3 eval/run_eval.py --from-file "${RESULTS_RETRIEVAL:-eval/fixtures/results_retrieval.jsonl}" --label "$GITHUB_SHA"
+      - name: eval de tâches (assertions + juge fourni de l'extérieur)
+        run: python3 eval/run_tasks_eval.py --runs "${RUNS_TASKS:-eval/fixtures/runs_tasks.jsonl}" --judge-file "${JUDGE_FILE:-eval/fixtures/judge.jsonl}" --label "$GITHUB_SHA"
+      - name: nœud 1 — le passage est typé (garde-fous sondés)
+        run: python3 eval/check_nodes.py --node 1

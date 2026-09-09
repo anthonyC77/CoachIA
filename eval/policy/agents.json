@@ -1,0 +1,14 @@
+{
+ "contract_version": "1.0",
+ "description": "RunPolicy déclarée par agent de production. Le harnais fige cette politique avant la première action d'un run et la recopie dans run.policy ; l'eval compare les deux depuis l'extérieur. Toute exception (outil accordé hors de cette liste) est consignée dans `exceptions` : c'est le dénominateur de la mesure de largeur n°2.",
+ "agents": {
+  "assistant-acces": {
+   "allowed_tools": ["rechercher_documents", "lire_document", "creer_demande_badge"],
+   "quotas": {"max_calls": 8, "max_tokens": 40000, "max_wall_clock_ms": 30000, "max_eur": 0.05},
+   "identity": {"principal": "svc-nexus-acces", "si_role": "lecteur-referentiel"},
+   "side_effect_requires_idempotency_key": true,
+   "cancellation": "propagée à chaque appel d'outil ; un run annulé se termine en status=cancelled sans effet de bord supplémentaire"
+  }
+ },
+ "exceptions": []
+}

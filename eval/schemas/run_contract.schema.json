@@ -1,0 +1,99 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "nexus/run-contract/1.0",
+ "title": "Contrat de run public",
+ "description": "Ce qu'un utilisateur du système verrait d'une exécution : entrée, sortie, appels d'outils, provenance, coût, politique appliquée. L'eval de tâches ne lit QUE cet objet. Aucun champ ici ne provient des internes (table de spans, mémoire de l'orchestrateur, prompts) : si l'eval a besoin d'autre chose, elle a pris un accès privilégié.",
+ "type": "object",
+ "additionalProperties": false,
+ "required": ["contract_version", "run_id", "task_id", "status", "input", "output", "tool_calls", "provenance", "cost", "policy", "human_interventions"],
+ "properties": {
+  "contract_version": {"type": "string", "enum": ["1.0"]},
+  "run_id": {"type": "string", "minLength": 1},
+  "task_id": {"type": "string", "minLength": 1},
+  "status": {"type": "string", "enum": ["completed", "refused", "clarification", "failed", "cancelled", "quota_exceeded"]},
+  "input": {
+   "type": "object",
+   "required": ["message"],
+   "properties": {
+    "message": {"type": "string"},
+    "context_tokens": {"type": "integer", "minimum": 0, "description": "Taille du contexte fourni au run (mesure de largeur n°3)"}
+   }
+  },
+  "output": {
+   "type": "object",
+   "required": ["text"],
+   "properties": {"text": {"type": "string"}}
+  },
+  "tool_calls": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": ["tool", "input", "output", "ok"],
+    "properties": {
+     "tool": {"type": "string"},
+     "input": {"type": "object"},
+     "output": {},
+     "ok": {"type": "boolean"},
+     "idempotency_key": {"type": "string", "minLength": 8, "description": "Obligatoire pour tout outil à effet de bord"},
+     "latency_ms": {"type": "integer", "minimum": 0}
+    }
+   }
+  },
+  "provenance": {
+   "type": "array",
+   "description": "Un élément par fragment de la sortie qui affirme quelque chose. Répond à « d'où vient cette phrase ? ».",
+   "items": {
+    "type": "object",
+    "required": ["fragment", "source"],
+    "properties": {
+     "fragment": {"type": "string", "minLength": 1},
+     "source": {
+      "type": "object",
+      "required": ["kind", "id"],
+      "properties": {
+       "kind": {"type": "string", "enum": ["document", "tool_call", "user", "policy"]},
+       "id": {"type": "string", "minLength": 1}
+      }
+     }
+    }
+   }
+  },
+  "cost": {
+   "type": "object",
+   "required": ["calls", "tokens_in", "tokens_out", "eur", "wall_clock_ms"],
+   "properties": {
+    "calls": {"type": "integer", "minimum": 0},
+    "tokens_in": {"type": "integer", "minimum": 0},
+    "tokens_out": {"type": "integer", "minimum": 0},
+    "eur": {"type": "number", "minimum": 0},
+    "wall_clock_ms": {"type": "integer", "minimum": 0}
+   }
+  },
+  "policy": {
+   "type": "object",
+   "description": "La RunPolicy effectivement appliquée à ce run, telle que le harnais l'a figée avant la première action",
+   "required": ["agent", "allowed_tools", "quotas", "identity"],
+   "properties": {
+    "agent": {"type": "string"},
+    "allowed_tools": {"type": "array", "items": {"type": "string"}},
+    "quotas": {
+     "type": "object",
+     "required": ["max_calls", "max_tokens", "max_wall_clock_ms", "max_eur"],
+     "properties": {
+      "max_calls": {"type": "integer", "minimum": 0},
+      "max_tokens": {"type": "integer", "minimum": 0},
+      "max_wall_clock_ms": {"type": "integer", "minimum": 0},
+      "max_eur": {"type": "number", "minimum": 0}
+     }
+    },
+    "identity": {
+     "type": "object",
+     "required": ["principal"],
+     "properties": {"principal": {"type": "string"}, "si_role": {"type": "string"}}
+    }
+   }
+  },
+  "human_interventions": {"type": "integer", "minimum": 0, "description": "Reprises en main pendant le run (mesure de largeur n°4)"},
+  "cancelled": {"type": "boolean"}
+ }
+}

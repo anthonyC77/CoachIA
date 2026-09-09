@@ -1,0 +1,20 @@
+{
+ "contract_version": "1.0",
+ "note": "Point de référence. Les zéros initiaux sont à remplacer par le premier run réel (--write-baseline depuis un terminal humain), sinon rien ne régresse jamais. Écrit uniquement par run_eval.py / run_tasks_eval.py ; deny + hook pour tout le reste.",
+ "retrieval": {
+  "written_at": "2026-09-06T00:00:00+00:00",
+  "label": "initial-avant-premier-run",
+  "source_run": null,
+  "k": 5,
+  "negative_score_threshold": 0.5,
+  "tolerance": 0.02,
+  "metrics": {"recall": 0.0, "mrr": 0.0, "ndcg": 0.0, "all_hit": 0.0, "facts": null, "negative_ok": 0.0, "n": 0}
+ },
+ "tasks": {
+  "written_at": "2026-09-06T00:00:00+00:00",
+  "label": "initial-avant-premier-run",
+  "source_run": null,
+  "tolerance": 0.05,
+  "metrics": {"success_rate": 0.0, "assert_rate": 0.0, "judge_rate": null, "agreement": null, "kappa": null, "contract_valid_rate": 0.0, "policy_ok_rate": 0.0, "provenance_ok_rate": 0.0, "negative_ok": 0.0, "no_human_rate": 0.0, "n": 0}
+ }
+}
