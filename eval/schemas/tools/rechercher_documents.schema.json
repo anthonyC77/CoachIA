@@ -1,0 +1,66 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "horus/tools/rechercher_documents/1",
+ "x-generated-by": "eval/gen_tool_schemas.py (stage 0 de Horus.Tools.SourceGen)",
+ "x-source": "src/Horus.Tools/Contracts/RechercherDocuments.cs",
+ "x-source-sha256": "0cbb4514ae43f949b6d2187e5ba8ef208593017fa90270a05f7003c27796a213",
+ "name": "rechercher_documents",
+ "description": "Recherche hybride dans le référentiel ; renvoie les k meilleurs passages avec leur document source.",
+ "side_effect": false,
+ "input": {
+  "type": "object",
+  "properties": {
+   "query": {
+    "type": "string",
+    "description": "Question telle que posée par l'utilisateur"
+   },
+   "k": {
+    "type": "integer",
+    "description": "Nombre de passages à renvoyer",
+    "default": 5
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "query"
+  ]
+ },
+ "output": {
+  "type": "object",
+  "properties": {
+   "results": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "doc_id": {
+       "type": "string",
+       "description": "Identifiant du document tel que l'index le renvoie"
+      },
+      "chunk_id": {
+       "type": "string"
+      },
+      "score": {
+       "type": "number"
+      },
+      "text": {
+       "type": "string"
+      }
+     },
+     "additionalProperties": false,
+     "required": [
+      "doc_id",
+      "chunk_id",
+      "score",
+      "text"
+     ]
+    },
+    "description": "Passages classés par pertinence décroissante"
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "results"
+  ]
+ }
+}

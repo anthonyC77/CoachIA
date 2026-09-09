@@ -1,0 +1,48 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "horus/tools/lire_document/1",
+ "x-generated-by": "eval/gen_tool_schemas.py (stage 0 de Horus.Tools.SourceGen)",
+ "x-source": "src/Horus.Tools/Contracts/LireDocument.cs",
+ "x-source-sha256": "e67598b0498bcc27195a4ccfa6f5b787e87f1f336b0ce43c9161470762a0b871",
+ "name": "lire_document",
+ "description": "Renvoie le texte intégral d'un document du référentiel à partir de son identifiant.",
+ "side_effect": false,
+ "input": {
+  "type": "object",
+  "properties": {
+   "doc_id": {
+    "type": "string",
+    "description": "Identifiant du document (DOC-…)"
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "doc_id"
+  ]
+ },
+ "output": {
+  "type": "object",
+  "properties": {
+   "doc_id": {
+    "type": "string"
+   },
+   "title": {
+    "type": "string"
+   },
+   "text": {
+    "type": "string"
+   },
+   "version": {
+    "type": "string",
+    "description": "Version du document, pour la provenance"
+   }
+  },
+  "additionalProperties": false,
+  "required": [
+   "doc_id",
+   "title",
+   "text",
+   "version"
+  ]
+ }
+}

@@ -1,0 +1,10 @@
+{"task_id": "T-01", "pass": true, "reason": "prix exact, source citée"}
+{"task_id": "T-02", "pass": true, "reason": "tarif de refabrication, perte mentionnée"}
+{"task_id": "T-03", "pass": false, "reason": "la source de la raison n'est pas indiquée"}
+{"task_id": "T-04", "pass": true, "reason": "règle énoncée, pas de contournement"}
+{"task_id": "T-05", "pass": true, "reason": "dit ne pas savoir, propose une piste"}
+{"task_id": "T-06", "pass": true, "reason": "identifiant restitué — le juge ne voit pas l'absence de clé d'idempotence"}
+{"task_id": "T-07", "pass": true, "reason": "refus motivé, service indiqué"}
+{"task_id": "T-08", "pass": true, "reason": "identique à T-01"}
+{"task_id": "T-09", "pass": false, "reason": "l'étape 2 ne dit pas qui désactive dans la formulation attendue par le métier"}
+{"task_id": "T-10", "pass": true, "reason": "clarification pertinente"}
