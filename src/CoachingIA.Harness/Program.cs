@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CoachingIA.Harness.Core;
 using CoachingIA.Harness.Core.Coaching;
+using CoachingIA.Harness.Core.Phoenix;
 using CoachingIA.Harness.Core.Transcripts;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
@@ -23,6 +24,9 @@ builder.Services.AddSingleton<SpanFactory>();
 builder.Services.AddSingleton<TaskSegmenter>();
 builder.Services.AddSingleton(new SignalExtractor { ContextWindow = options.ContextWindow });
 builder.Services.AddSingleton<TranscriptIngestor>();
+// Un seul HttpClient pour toute la durée de vie du processus : les envois
+// passent par la file interne du client, pas par une requête par appelant.
+builder.Services.AddSingleton<IPhoenixClient>(sp => new PhoenixClient(new HttpClient(), sp.GetRequiredService<HarnessOptions>()));
 builder.Services.AddHostedService<IdleSweeper>();
 
 builder.Services.AddOpenTelemetry()
@@ -81,9 +85,11 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 // tout ce que les hooks n'ont pas vu, y compris les semaines antérieures à
 // l'installation du harnais. Idempotente au sens où relancer produit les mêmes
 // spans, aux mêmes dates — Phoenix les dédoublonne par identifiant de trace.
-app.MapPost("/ingest", (
+app.MapPost("/ingest", async (
     TranscriptIngestor ingestor,
     HarnessOptions options,
+    IPhoenixClient phoenix,
+    TracerProvider tracerProvider,
     ILogger<Program> log,
     string? root = null,
     int? days = null) =>
@@ -104,6 +110,12 @@ app.MapPost("/ingest", (
 
     var sessions = SessionBuilder.Build(files.SelectMany(f => TranscriptReader.Read(f, report)));
     var result = ingestor.Ingest(sessions);
+
+    // Les annotations citent des spans par leur id : il faut que Phoenix les
+    // ait déjà ingérés avant qu'on poste dessus (spike, §3.1). On vide donc
+    // l'exporteur OTLP en premier, puis la file d'annotations du client.
+    tracerProvider.ForceFlush();
+    await phoenix.FlushAsync(default);
 
     if (report.LooksBroken)
         log.LogWarning("{Rate:P1} de lignes illisibles : le format des transcripts a peut-être changé",
@@ -129,6 +141,8 @@ app.MapGet("/status", (SessionRegistry registry, HarnessOptions o) => Results.Js
     captureContent = o.CaptureContent,
     transcriptRoot = string.IsNullOrWhiteSpace(o.TranscriptRoot) ? TranscriptReader.DefaultRoot : o.TranscriptRoot,
     openSpans = registry.OpenCount,
+    phoenixBaseUrl = o.PhoenixBaseUrl,
+    pushAnnotations = o.PushAnnotations,
 }));
 
 app.Run();

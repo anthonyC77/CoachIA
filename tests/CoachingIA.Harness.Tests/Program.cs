@@ -181,6 +181,18 @@ CoachingIA.Harness.Tests.PromptCriticTests.Run(Check);
 Console.WriteLine("\n─────────────────────────────  claude -p  ─────────────────────────────\n");
 CoachingIA.Harness.Tests.ClaudeCliTests.Run(Check);
 
+Console.WriteLine("\n──────────────────────────  client phoenix  ──────────────────────────\n");
+CoachingIA.Harness.Tests.PhoenixClientTests.Run(Check);
+
+Console.WriteLine("\n──────────────────────────  signaux phoenix  ──────────────────────────\n");
+CoachingIA.Harness.Tests.PhoenixSignalTests.Run(Check);
+
+Console.WriteLine("\n───────────────────────────  spans llm phoenix  ───────────────────────────\n");
+CoachingIA.Harness.Tests.PhoenixLlmTests.Run(Check);
+
+Console.WriteLine("\n─────────────────────────  évaluations phoenix  ─────────────────────────\n");
+CoachingIA.Harness.Tests.PhoenixEvalTests.Run(Check);
+
 // En dernier, et ce n'est pas un hasard : la suite du corpus de maturité mute
 // la façade statique SignalSpecs, dont héritent toutes les suites qui suivent.
 // L'évaluation monte donc explicitement le sien plutôt que d'hériter d'un état
