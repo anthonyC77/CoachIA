@@ -159,8 +159,10 @@ change sans ce drapeau.
   depuis `Entree`, `output` depuis `Attendu`, et en métadonnées la famille,
   l'intitulé, l'origine et les étiquettes.
 - **Experiment** — une campagne.
-- **Run** — une épreuve jouée ; sa sortie est `Production.Texte`.
-- **Annotations sur les runs** — un `Verdict` par annotation : `label` depuis
+- **Run** — une épreuve jouée ; sa sortie est `Production.Texte`. Le run se
+  rattache à l'exemple par l'identifiant **que Phoenix a attribué** à cet
+  exemple, pas par `Epreuve.Id`.
+- **Évaluations de run** — un `Verdict` par évaluation : `label` depuis
   `Etiquette`, `score` depuis `Score` (omis si `Indecis`), `explanation` depuis
   `Explication`, et `Preuve` en métadonnée pour rester surlignable.
 
@@ -168,6 +170,45 @@ change sans ce drapeau.
 évaluateurs du code, `LLM` pour ceux qui s'adossent au juge. La distinction
 reste donc lisible dans l'UI, et elle reste ce qu'elle est dans le code — le
 juge n'entre pas dans le verdict approuvé, la porte demeure déterministe.
+
+### 5.0 Correction du 23 septembre : un run n'est pas un span
+
+La première version de cette section parlait d'« annotations sur les runs » en
+supposant qu'on les poserait par `POST /v1/span_annotations`, comme les
+signaux. C'était faux, et la tâche 05 du chantier l'a établi contre un Phoenix
+20.16.0 réel avant d'écrire une ligne :
+
+- **Un run d'expérience n'est pas un span.** Sa réponse de création porte
+  `trace_id: null` ; poster une annotation de span sur son identifiant rend
+  `404 Spans with IDs … do not exist`. L'API a une route dédiée,
+  `POST /v1/experiment_evaluations`, qui exige `experiment_run_id`, `name`,
+  `annotator_kind`, `start_time` et `end_time`.
+- **Un run exige l'identifiant Phoenix de l'exemple**, un GlobalID encodé en
+  base64. L'upload d'un dataset ne le renvoie pas — seulement `dataset_id`,
+  `version_id` et des compteurs. Seul `GET /v1/datasets/{id}/examples` le
+  donne, dans l'ordre d'upload. Un identifiant local comme `Epreuve.Id` rend
+  un `500`.
+
+Le socle avait implémenté fidèlement une spec fausse. Écrire la publication
+par-dessus aurait donné une suite verte contre un faux client et une
+fonctionnalité cassée à 100 % contre le vrai — chaque run en échec, rattrapé
+en silence par la règle qui interdit à la publication de faire échouer la
+campagne.
+
+Deux méthodes s'ajoutent donc au client, **sur une interface séparée,
+`IPhoenixExperiences`**, et non sur `IPhoenixClient` :
+
+```csharp
+Task<IReadOnlyList<string>> ListerExemplesAsync(string datasetId, CancellationToken ct);
+Task EvaluerRunAsync(RunEvaluation evaluation, CancellationToken ct);
+```
+
+L'interface séparée n'est pas un détail de style. `IPhoenixClient` a déjà des
+implémentations factices dans les suites de tests d'autres tâches ; y ajouter
+deux membres les empêcherait de compiler au moment de la fusion. Et la
+séparation correspond à une vraie frontière : `IPhoenixClient` porte le chemin
+chaud, qui ne lève jamais ; la publication d'une campagne est un traitement
+hors ligne, dont l'appelant rattrape les échecs.
 
 ### 5.1 Une épreuve qui cite du réel ne monte pas telle quelle
 
