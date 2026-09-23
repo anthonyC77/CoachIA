@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using CoachingIA.Harness.Core.Transcripts;
 
 namespace CoachingIA.Harness.Core;
 
@@ -22,12 +23,14 @@ public sealed class SpanFactory
     private readonly SessionRegistry _registry;
     private readonly HarnessOptions _options;
     private readonly TimeProvider _time;
+    private readonly TurnTail _turnTail;
 
-    public SpanFactory(SessionRegistry registry, HarnessOptions options, TimeProvider? time = null)
+    public SpanFactory(SessionRegistry registry, HarnessOptions options, TimeProvider? time = null, TurnTail? turnTail = null)
     {
         _registry = registry;
         _options = options;
         _time = time ?? TimeProvider.System;
+        _turnTail = turnTail ?? new TurnTail();
     }
 
     /// <summary>
@@ -147,8 +150,48 @@ public sealed class SpanFactory
             activity.SetStatus(ActivityStatusCode.Error, e.ErrorMessage ?? e.ErrorType);
             activity.SetTag("coaching.error_type", e.ErrorType);
         }
+
+        EmitLlm(e, activity.Context);
+
         activity.Dispose();
         return activity;
+    }
+
+    /// <summary>
+    /// Emet, sous le tour qui vient de se fermer, un span enfant de kind LLM
+    /// portant le modele et les compteurs de jetons lus dans la queue du
+    /// transcript. Silencieux dans tous les cas d'echec : un transcript_path
+    /// absent, un fichier introuvable, illisible ou verrouille ne doivent
+    /// jamais empecher la fermeture du tour, qui bloque l'apprenant - au pire
+    /// aucun span LLM ne part.
+    /// </summary>
+    private void EmitLlm(HookEvent e, ActivityContext parent)
+    {
+        if (string.IsNullOrEmpty(e.TranscriptPath) || string.IsNullOrEmpty(e.SessionId)) return;
+
+        TurnTail.Result? tail;
+        try
+        {
+            tail = _turnTail.Read(e.SessionId, e.PromptId, e.TranscriptPath);
+        }
+        catch
+        {
+            return;
+        }
+        if (tail is null) return;
+
+        var activity = Source.StartActivity("llm", ActivityKind.Internal, parent);
+        if (activity is null) return;
+
+        Common(activity, e);
+        activity.SetTag(OI.SpanKind, OI.Kind.Llm);
+        // Structure seulement : nom du modele et compteurs de jetons, jamais de
+        // texte - meme quand CaptureContent vaut true, ce span n'en porte pas.
+        if (tail.Model is { Length: > 0 }) activity.SetTag("llm.model_name", tail.Model);
+        if (tail.PromptTokens > 0) activity.SetTag("llm.token_count.prompt", tail.PromptTokens);
+        if (tail.CompletionTokens > 0) activity.SetTag("llm.token_count.completion", tail.CompletionTokens);
+        if (tail.CacheReadTokens > 0) activity.SetTag("llm.token_count.prompt_details.cache_read", tail.CacheReadTokens);
+        activity.Dispose();
     }
 
     // ---------- appels d'outils ----------
