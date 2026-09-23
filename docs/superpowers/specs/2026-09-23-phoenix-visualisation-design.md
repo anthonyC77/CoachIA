@@ -195,13 +195,32 @@ fonctionnalité cassée à 100 % contre le vrai — chaque run en échec, rattra
 en silence par la règle qui interdit à la publication de faire échouer la
 campagne.
 
-Deux méthodes s'ajoutent donc au client, **sur une interface séparée,
+Trois méthodes s'ajoutent donc au client, **sur une interface séparée,
 `IPhoenixExperiences`**, et non sur `IPhoenixClient` :
 
 ```csharp
-Task<IReadOnlyList<string>> ListerExemplesAsync(string datasetId, CancellationToken ct);
+Task<string?> TrouverDatasetAsync(string nom, CancellationToken ct);
+Task<IReadOnlyList<ExemplePhoenix>> ListerExemplesAsync(string datasetId, CancellationToken ct);
 Task EvaluerRunAsync(RunEvaluation evaluation, CancellationToken ct);
 ```
+
+`ExemplePhoenix` porte l'identifiant Phoenix de l'exemple, ses métadonnées et
+sa date de mise à jour (`updated_at`, présent dans la réponse du serveur).
+`TrouverDatasetAsync` interroge `GET /v1/datasets?name=` : le filtre par nom
+existe côté serveur, ce qui dispense de parcourir une liste paginée.
+
+**Le rattachement se fait par identifiant d'épreuve, pas par rang.** Chaque
+exemple porte en métadonnées `epreuve_id` et `empreinte` ; un run va à
+l'exemple dont le couple correspond. L'ordre dans lequel Phoenix rend les
+exemples est un comportement observé, pas documenté : rien n'en dépend.
+
+**Une épreuve déjà présente n'est pas renvoyée.** « Déjà présente » veut dire
+même identifiant *et* même empreinte — SHA-256 de la forme publiée, calculée
+par la publication. Avec l'identifiant seul, une épreuve corrigée garderait son
+ancien contenu dans Phoenix et ses runs iraient à un exemple faux. Avec
+l'empreinte, une correction monte comme nouvelle version, et un jeu inchangé ne
+fait grossir le dataset d'aucun exemple : la publication sert à chaque
+campagne, pas seulement à la première.
 
 L'interface séparée n'est pas un détail de style. `IPhoenixClient` a déjà des
 implémentations factices dans les suites de tests d'autres tâches ; y ajouter
