@@ -97,4 +97,23 @@ public sealed class HarnessOptions
 
     /// <summary>Dossier des packs de vocabulaire. Vide = le dossier lenses du depot.</summary>
     public string? LensDirectory { get; set; }
+
+    /// <summary>
+    /// API REST de Phoenix (annotations, datasets, experiments, runs).
+    /// Distincte d'OtlpEndpoint, qui reste en gRPC sur 4317.
+    /// </summary>
+    public string PhoenixBaseUrl { get; set; } = "http://localhost:6006";
+
+    /// <summary>
+    /// A false, plus aucune annotation ne part vers Phoenix. Les spans
+    /// continuent par l'exporteur OTLP, qui n'a rien a voir avec ce reglage.
+    /// </summary>
+    public bool PushAnnotations { get; set; } = true;
+
+    /// <summary>
+    /// Nombre de tentatives supplementaires apres la premiere pour l'envoi
+    /// d'une annotation. Au-dela, l'annotation est abandonnee avec un log en
+    /// avertissement - jamais avec une exception qui remonterait a l'appelant.
+    /// </summary>
+    public int AnnotationMaxRetries { get; set; } = 3;
 }

@@ -527,6 +527,9 @@ Vérifiez ensuite avec `/hooks`, qui liste ce qui est réellement chargé.
 | `ContextWindow` | Fenêtre du modèle, référence de `context_pressure`. Un mauvais réglage donne des taux au-dessus de 100 % — le signal le dit dans son evidence au lieu de le taire. |
 | `WeeklyTokenBudget` | Enveloppe hebdomadaire de référence, en jetons lus. 0 = pas de référence, lecture en tendance. |
 | `Lens` | Lentille de vocabulaire : `neutre` (défaut), `starcraft2`, `echecs`. |
+| `PhoenixBaseUrl` | API REST de Phoenix (annotations, datasets, experiments, runs). Distincte d'`OtlpEndpoint`, qui reste en gRPC sur `4317`. |
+| `PushAnnotations` | À `false`, plus aucune annotation ne part vers Phoenix. Les spans continuent par l'exporteur OTLP. |
+| `AnnotationMaxRetries` | Tentatives supplémentaires après la première pour l'envoi d'une annotation. Au-delà, elle est abandonnée avec un log en avertissement. |
 
 ## Ce qui n'est pas encore là
 
