@@ -1,7 +1,28 @@
 name: eval
-# La CI lit les codes de sortie : 0 passe, 1 régression sous la tolérance de baseline.json, 2 erreur.
-# RESULTS_RETRIEVAL / RUNS_TASKS sont produits par un job amont qui parle au système déployé ;
-# à défaut (stage 0), les fixtures servent de fumée : le pipeline doit tourner sans serveur ni clé.
+# ─────────────────────────────────────────────────────────────────────────────
+# Cette chaîne vient du harnais « Horus » (RAG hybride, retrieval, contrat de
+# run). Elle est en sommeil depuis le 12 septembre 2026, et le code qu'elle
+# mesure vit sous `_horus/`.
+#
+# POURQUOI. Quatre des cinq étapes passaient au vert grâce aux fixtures et ne
+# mesuraient rien de CoachingIA : il n'y a ici ni retrieval, ni orchestrateur,
+# et `_horus/src/Nexus.Tools` n'appartient à aucune solution — il ne compile
+# donc jamais. Un feu vert qui ne mesure rien est pire que pas de feu du tout,
+# et c'est exactement la faute que ce harnais existe pour empêcher.
+#
+# CONDITION DE RÉOUVERTURE, écrite ici pour ne pas dépendre d'une mémoire :
+# le jour où
+#     dotnet run --project src/CoachingIA.Cli -- exporter-run
+# produit un fichier conforme à `_horus/eval/schemas/run_contract.schema.json`,
+# l'étape « eval de tâches » retrouve une entrée réelle. On la rouvre alors
+# avec des runs de vraies sessions, plus jamais avec des fixtures.
+#
+# CE QUI RESTE ACTIF. La suite unitaire des oracles : elle éprouve du code qui
+# existe vraiment (les deux oracles Python et les trois garde-fous shell), elle
+# tourne sans serveur ni clé d'API, et ses sondes de garde-fou sont le seul
+# endroit du dépôt qui vérifie qu'une action dangereuse est empêchée par autre
+# chose qu'un prompt.
+# ─────────────────────────────────────────────────────────────────────────────
 on: [push, pull_request]
 jobs:
   oracle:
@@ -10,13 +31,28 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - name: tests unitaires des oracles
-        run: python3 -m unittest discover -s eval/tests -v
-      - name: un outil est un type (schémas générés, à jour, référencés)
-        run: python3 eval/check_tool_schemas.py
-      - name: eval retrieval (oracle mécanique, 0 appel LLM)
-        run: python3 eval/run_eval.py --from-file "${RESULTS_RETRIEVAL:-eval/fixtures/results_retrieval.jsonl}" --label "$GITHUB_SHA"
-      - name: eval de tâches (assertions + juge fourni de l'extérieur)
-        run: python3 eval/run_tasks_eval.py --runs "${RUNS_TASKS:-eval/fixtures/runs_tasks.jsonl}" --judge-file "${JUDGE_FILE:-eval/fixtures/judge.jsonl}" --label "$GITHUB_SHA"
-      - name: nœud 1 — le passage est typé (garde-fous sondés)
-        run: python3 eval/check_nodes.py --node 1
+
+      # `jq` est présent sur ubuntu-latest ; sans lui la classe Guardrails se
+      # met en skip et les sondes ne vérifient plus rien — en silence.
+      - name: jq est là (sinon les sondes de garde-fou se taisent)
+        run: jq --version
+
+      - name: tests unitaires des oracles et sondes de garde-fou
+        run: python3 -m unittest discover -s _horus/eval/tests -v
+
+      # ── En sommeil ───────────────────────────────────────────────────────
+      # Ces quatre étapes mesurent Horus, pas CoachingIA. Elles restent écrites
+      # plutôt que supprimées : le jour où l'exporteur produit de vrais runs,
+      # c'est la deuxième qu'on rouvre en premier.
+      #
+      # - name: un outil est un type (schémas générés, à jour, référencés)
+      #   run: python3 _horus/eval/check_tool_schemas.py
+      #
+      # - name: eval de tâches (assertions + juge fourni de l'extérieur)
+      #   run: python3 _horus/eval/run_tasks_eval.py --runs "$RUNS_TASKS" --judge-file "$JUDGE_FILE" --label "$GITHUB_SHA"
+      #
+      # - name: eval retrieval (oracle mécanique, 0 appel LLM)
+      #   run: python3 _horus/eval/run_eval.py --from-file "$RESULTS_RETRIEVAL" --label "$GITHUB_SHA"
+      #
+      # - name: nœud 1 — le passage est typé (garde-fous sondés)
+      #   run: python3 _horus/eval/check_nodes.py --node 1
