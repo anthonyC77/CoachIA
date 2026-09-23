@@ -50,7 +50,15 @@ Task AnnotateAsync(IReadOnlyList<SpanAnnotation> annotations, CancellationToken 
 Task<string> UpsertDatasetAsync(string nom, IReadOnlyList<DatasetExample> exemples, CancellationToken ct);
 Task<string> CreateExperimentAsync(string datasetId, string nom, CancellationToken ct);
 Task<string> CreateRunAsync(string experimentId, ExperimentRun run, CancellationToken ct);
+Task FlushAsync(CancellationToken ct);
 ```
+
+Ces cinq méthodes sont portées par une interface `IPhoenixClient`. L'interface
+n'est pas du confort : le harnais de tests est une fermeture synchrone, sans
+framework ni conteneur d'injection, et sans elle les unités 2 et 3 ne peuvent
+pas s'éprouver contre un faux client. `FlushAsync` existe pour la même famille
+de raisons que §3.1 — vider la file avant de rendre la main, là où l'appelant
+sait qu'il a fini.
 
 `HttpClient` et rien d'autre — aucune dépendance nouvelle. Contrat confirmé sur
 la documentation Phoenix :
