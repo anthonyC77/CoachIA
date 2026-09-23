@@ -5,7 +5,12 @@
 #   http://localhost:6006
 services:
   phoenix:
-    image: arizephoenix/phoenix:latest
+    # Version épinglée : le code dépend d'un contrat REST précis de Phoenix
+    # (annotations de span, datasets, experiments). Une image flottante peut
+    # faire bouger ce contrat sous nos pieds sans qu'aucun test ne le dise.
+    # Avant de relever la version, vérifier qu'elle existe sur
+    # https://hub.docker.com/r/arizephoenix/phoenix/tags.
+    image: arizephoenix/phoenix:20.16.0
     container_name: coachingia-phoenix
     ports:
       - "6006:6006"   # interface web + collecteur OTLP/HTTP
