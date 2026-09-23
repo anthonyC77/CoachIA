@@ -98,11 +98,14 @@ class ToolIsAType(unittest.TestCase):
         return json.load(open(os.path.join(EVAL, "schemas", "tools", f"{name}.schema.json"), encoding="utf-8"))
 
 
+# Les hooks vivent sous _horus/claude/ et non _horus/.claude/ : un dossier
+# nomme .claude a l'interieur de la quarantaine risquerait d'etre charge,
+# et c'est precisement ce que le LISEZ-MOI dit d'eviter.
 @unittest.skipUnless(shutil.which("jq") and shutil.which("sh"), "sh + jq requis")
 class Guardrails(unittest.TestCase):
     def hook(self, script, args, payload):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=PROJECT)
-        return subprocess.run(["sh", os.path.join(PROJECT, ".claude", "hooks", script), *args], input=json.dumps(payload), capture_output=True, text=True, env=env, cwd=PROJECT).returncode
+        return subprocess.run(["sh", os.path.join(PROJECT, "claude", script), *args], input=json.dumps(payload), capture_output=True, text=True, env=env, cwd=PROJECT).returncode
 
     def test_all_probes(self):
         for pr in run_tasks_eval.load_jsonl(os.path.join(EVAL, "guardrail_probes.jsonl")):
