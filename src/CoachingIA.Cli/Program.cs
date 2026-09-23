@@ -81,6 +81,7 @@ switch (command)
     case "moment": return Moment();
     case "bilan": return Bilan();
     case "retro": return Retro();
+    case "exporter-run": return ExporterRun();
     default:
         Console.WriteLine("""
             coachingia — lecture des transcripts Claude Code
@@ -97,6 +98,9 @@ switch (command)
                         réécrit, observations, conseils, défi
               retro     la rétrospective des mois écoulés : trajectoire de chaque
                         signal, bascules datées, mois par mois
+              exporter-run  une session au format du journal de runs, lisible
+                        par la ruche : --session <début d'identifiant>,
+                        --out <dossier>, --tout, --contenu (voir plus bas)
               web       la console locale : les mêmes commandes, dans une page,
                         sur 127.0.0.1 (--port 5099 par défaut)
               corpus    le fond de connaissance d'une lentille : --valider les
@@ -241,6 +245,65 @@ int Segment()
     return 0;
 }
 
+
+int ExporterRun()
+{
+    // Projette une session relue vers le journal d'événements que lit la ruche.
+    // Rien n'est parsé ici : on lit le modèle que SessionBuilder produit déjà.
+    // Un second parseur du JSONL de Claude Code serait un second endroit à
+    // réparer le jour où le format bouge.
+    var (sessions, parse) = Load();
+    var prefixe = Arg("--session");
+    var contenu = args.Contains("--contenu");
+    var sansCibles = args.Contains("--sans-cibles");
+    var dossier = outPath ?? "runs";
+
+    List<TranscriptSession> choisies;
+    if (prefixe is null)
+    {
+        choisies = sessions;
+    }
+    else
+    {
+        var debut = prefixe;
+        choisies = sessions
+            .Where(s => s.SessionId.StartsWith(debut, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    if (choisies.Count == 0)
+    {
+        Console.Error.WriteLine(prefixe is null
+            ? "Aucune session a exporter."
+            : $"Aucune session dont l'identifiant commence par « {prefixe} ».");
+        Console.Error.WriteLine("Listez-les avec : coachingia probe");
+        return 2;
+    }
+
+    // Sans --tout ni --session, on n'exporte que la plus récente : remplir un
+    // dossier de cent runs par distraction ne rend service a personne.
+    if (prefixe is null && !args.Contains("--tout"))
+        choisies = [choisies.OrderByDescending(s => s.StartedAt).First()];
+
+    var options = new RunExportOptions { CaptureContent = contenu, CaptureArgs = !sansCibles };
+
+    Console.WriteLine($"{sessions.Count} session(s) relue(s), {parse.LinesUnreadable} ligne(s) illisible(s)\n");
+    if (contenu)
+        Console.WriteLine("⚠ --contenu : le texte des prompts et les sorties d'outils entrent dans le fichier.\n");
+
+    foreach (var session in choisies)
+    {
+        var chemin = Path.Combine(dossier, session.SessionId + ".jsonl");
+        var run = RunExporter.Write(chemin, session, options);
+        Console.WriteLine($"  {chemin}");
+        Console.WriteLine($"    {run.Events.Count} evenement(s) · {run.Agents.Count} agent(s) · " +
+                          $"{session.Duration.TotalMinutes:F0} min · {session.ToolCallCount} outils");
+        // Les decisions d'attribution : une heuristique se journalise, sinon
+        // elle finit par se prendre pour une mesure.
+        foreach (var d in run.Decisions) Console.WriteLine($"      - {d}");
+    }
+    return 0;
+}
 
 int Usage()
 {

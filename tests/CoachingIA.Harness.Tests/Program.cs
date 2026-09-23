@@ -133,6 +133,9 @@ Check(factory.Handle(Ev("PostToolUse", new { tool_name = "Read" })) is not null,
 Console.WriteLine("\n────────────────────────────  transcripts  ────────────────────────────\n");
 CoachingIA.Harness.Tests.TranscriptTests.Run(Check);
 
+Console.WriteLine("\n──────────────────────────  export de runs  ──────────────────────────\n");
+CoachingIA.Harness.Tests.RunExportTests.Run(Check, FindRepoRoot());
+
 Console.WriteLine("\n────────────────────────────  usage  ────────────────────────────\n");
 CoachingIA.Harness.Tests.UsageTests.Run(Check);
 
