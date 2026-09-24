@@ -157,9 +157,15 @@ public static class BilanActivitiesTests
     /// Un faux <see cref="IClaudeCli"/> : compteur d'appels, disponibilité et
     /// réponse programmables. C'est le seul moyen d'éprouver <c>Critiquer</c>
     /// hors ligne — aucun vrai appel à <c>claude -p</c> dans cette suite.
+    ///
+    /// Interne (plutôt que privé) pour être réutilisé par la suite de tests
+    /// du workflow, qui a en plus besoin d'enchaîner plusieurs réponses
+    /// programmées d'un appel à l'autre — voir <see cref="Programmer"/>.
     /// </summary>
-    private sealed class FauxClaudeCli : IClaudeCli
+    internal sealed class FauxClaudeCli : IClaudeCli
     {
+        private readonly Queue<(string? Erreur, string? Reponse)> _programmees = new();
+
         public int Appels { get; private set; }
         public bool EstDisponible { get; set; } = true;
         public string? DerniereErreur { get; private set; }
@@ -170,11 +176,23 @@ public static class BilanActivitiesTests
         /// <summary>Quand renseigné, <see cref="Demander"/> échoue et rend cette chaîne en <see cref="DerniereErreur"/>.</summary>
         public string? ProchaineErreur { get; set; }
 
+        /// <summary>
+        /// Programme la réponse (ou l'échec, si <paramref name="erreur"/> est
+        /// renseigné) d'un prochain appel à <see cref="Demander"/>, dans
+        /// l'ordre où ils sont programmés. Une fois la file épuisée,
+        /// <see cref="Demander"/> retombe sur <see cref="ProchaineErreur"/> et
+        /// <see cref="ProchaineReponse"/>, sticky comme avant.
+        /// </summary>
+        public void Programmer(string? erreur, string? reponse) => _programmees.Enqueue((erreur, reponse));
+
         public string? Demander(string instruction, string? schema)
         {
             Appels++;
-            DerniereErreur = ProchaineErreur;
-            return ProchaineErreur is null ? ProchaineReponse : null;
+            var (erreur, reponse) = _programmees.Count > 0
+                ? _programmees.Dequeue()
+                : (ProchaineErreur, ProchaineReponse);
+            DerniereErreur = erreur;
+            return erreur is null ? reponse : null;
         }
     }
 }
