@@ -29,6 +29,16 @@ public sealed class SignalExtractor
     /// </summary>
     public long ContextWindow { get; init; } = 200_000;
 
+    /// <summary>
+    /// Même coupure que <see cref="HarnessOptions.CaptureContent"/>. Une evidence
+    /// finit en attribut de span et en annotation Phoenix : à false, elle ne cite
+    /// plus la commande de vérification, qui peut porter un chemin, un nom de
+    /// projet, voire un jeton passé en argument. Le signal garde sa valeur ; seul
+    /// son texte est masqué. Vrai par défaut, parce que le CLI affiche son bilan
+    /// dans le terminal de l'apprenant et que rien n'y quitte le poste.
+    /// </summary>
+    public bool CaptureContent { get; init; } = true;
+
     private static readonly Regex VerificationCmd =
         new(@"\b(dotnet\s+test|npm\s+(run\s+)?test|npm\s+run\s+build|ng\s+test|ng\s+build|pytest|jest|vitest|cargo\s+test|go\s+test|dotnet\s+build|eslint|ruff|mypy)\b",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -117,7 +127,7 @@ public sealed class SignalExtractor
         var verifications = calls.Where(IsVerification).ToList();
         Add("verification_present", 3, verifications.Count > 0 ? 1 : 0,
             verifications.Count > 0
-                ? $"vérification lancée : {Snippet(verifications[0].InputJson)}"
+                ? $"vérification lancée : {(CaptureContent ? Snippet(verifications[0].InputJson) : "(commande masquée)")}"
                 : "aucun test, build ou lint pendant la tâche");
 
         // ---------- palier 4 : la boucle ----------

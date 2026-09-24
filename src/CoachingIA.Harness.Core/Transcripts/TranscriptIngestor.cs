@@ -24,7 +24,7 @@ public sealed class TranscriptIngestor
     {
         _options = options;
         _segmenter = segmenter ?? new TaskSegmenter();
-        _signals = signals ?? new SignalExtractor();
+        _signals = signals ?? new SignalExtractor { CaptureContent = options.CaptureContent };
         _phoenix = phoenix;
     }
 

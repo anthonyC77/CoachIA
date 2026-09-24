@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using CoachingIA.Harness.Core;
 using CoachingIA.Harness.Core.Phoenix;
@@ -115,10 +116,63 @@ public static class PhoenixSignalTests
             check(taskSpan.GetTagItem("signal.rework_ratio.why") is not null,
                 "et sa justification aussi");
         }
+
+        Console.WriteLine("\nCaptureContent à false : la commande de vérification ne quitte pas le processus");
+        {
+            // Une commande de vérification peut porter un chemin, un nom de
+            // projet, voire un jeton passé en argument. Sous CaptureContent à
+            // false, elle ne doit sortir ni par l'annotation, ni par l'attribut
+            // .why, ni par aucun autre attribut d'aucun span.
+            const string secret = "--jeton=SECRET-42";
+            var sessionSecrete = FabriqueSession($"dotnet test {secret}");
+
+            var captured = new List<Activity>();
+            using var listener = new ActivityListener
+            {
+                ShouldListenTo = src => src.Name == SpanFactory.SourceName,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStopped = captured.Add,
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var fake = new FakePhoenixClient();
+            var ingestor = new TranscriptIngestor(
+                new HarnessOptions { PushAnnotations = true, CaptureContent = false }, phoenix: fake);
+            ingestor.Ingest([sessionSecrete]);
+
+            var fuitesAnnotation = fake.Received
+                .Where(a => a.Result.Explication?.Contains(secret, StringComparison.Ordinal) == true)
+                .Select(a => a.Name).ToList();
+            check(fuitesAnnotation.Count == 0,
+                $"CaptureContent à false : aucune annotation ne porte la commande de vérification (obtenu {fuitesAnnotation.Count} : {string.Join(", ", fuitesAnnotation)})");
+
+            var fuitesSpan = captured
+                .SelectMany(a => a.TagObjects.Select(t => (Span: a.OperationName, t.Key, Valeur: t.Value?.ToString() ?? "")))
+                .Where(t => t.Valeur.Contains(secret, StringComparison.Ordinal))
+                .Select(t => $"{t.Span}/{t.Key}").ToList();
+            check(fuitesSpan.Count == 0,
+                $"CaptureContent à false : aucun attribut d'aucun span ne porte la commande de vérification (obtenu {fuitesSpan.Count} : {string.Join(", ", fuitesSpan)})");
+
+            var verification = fake.Received.SingleOrDefault(a => a.Name == "verification_present");
+            check(verification?.Result.Score == 1.0,
+                $"le signal verification_present reste mesuré : seul son texte est masqué, pas sa valeur (obtenu {verification?.Result.Score?.ToString() ?? "aucune annotation"})");
+        }
+
+        Console.WriteLine("\nCaptureContent par défaut : le bilan local garde la commande");
+        {
+            // Le CLI construit son extracteur sans réglage : son bilan s'affiche
+            // dans le terminal de l'apprenant et ne quitte jamais le poste.
+            var sessionLocale = FabriqueSession("dotnet test --filter Parseur");
+            var task = new TaskSegmenter().Segment(sessionLocale)[0];
+            var evidence = new SignalExtractor().ForTask(task, sessionLocale)
+                .Single(s => s.Key == "verification_present").Evidence;
+            check(evidence.Contains("dotnet test --filter Parseur", StringComparison.Ordinal),
+                $"un extracteur sans réglage cite toujours la commande de vérification, pour le bilan local (obtenu « {evidence} »)");
+        }
     }
 
     /// <summary>Une session à une tâche, en cours (pour produire un signal NaN au passage).</summary>
-    private static TranscriptSession FabriqueSession()
+    private static TranscriptSession FabriqueSession(string commande = "dotnet test")
     {
         var t0 = new DateTimeOffset(2026, 9, 1, 9, 0, 0, TimeSpan.Zero);
         var session = new TranscriptSession { SessionId = "sig-annot-1", StartedAt = t0, EndedAt = t0.AddMinutes(10) };
@@ -139,7 +193,7 @@ public static class PhoenixSignalTests
         turn.ToolCalls.Add(new ToolCall
         {
             Id = "tu1", Name = "Bash", CalledAt = t0.AddSeconds(31), ResultAt = t0.AddSeconds(32),
-            InputJson = """{"command":"dotnet test"}""",
+            InputJson = JsonSerializer.Serialize(new { command = commande }),
         });
         session.Turns.Add(turn);
 
