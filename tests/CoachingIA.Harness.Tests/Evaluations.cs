@@ -106,6 +106,9 @@ public static class EvaluationTests
         check(resultat.Avertissements.Count == 0,
               $"la campagne se joue sans avertissement ({resultat.Avertissements.Count} signalé(s))");
         check(resultat.Verdicts.Count > 0, $"la campagne rend des verdicts (obtenu {resultat.Verdicts.Count})");
+        check(resultat.Productions.Count == jeu.Epreuves.Count
+              && jeu.Epreuves.All(e => resultat.Productions.ContainsKey(e.Id)),
+              $"la campagne garde une production par épreuve jouée, celle que les évaluateurs ont jugée (obtenu {resultat.Productions.Count} pour {jeu.Epreuves.Count} épreuves)");
 
         var indecis = resultat.Verdicts.Where(l => l.Verdict.Indecis).ToList();
         check(indecis.Count == 0,
