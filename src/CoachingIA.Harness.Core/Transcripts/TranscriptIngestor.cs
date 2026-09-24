@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CoachingIA.Harness.Core.Phoenix;
 
 namespace CoachingIA.Harness.Core.Transcripts;
 
@@ -15,12 +16,16 @@ public sealed class TranscriptIngestor
     private readonly HarnessOptions _options;
     private readonly TaskSegmenter _segmenter;
     private readonly SignalExtractor _signals;
+    private readonly IPhoenixClient? _phoenix;
 
-    public TranscriptIngestor(HarnessOptions options, TaskSegmenter? segmenter = null, SignalExtractor? signals = null)
+    public TranscriptIngestor(
+        HarnessOptions options, TaskSegmenter? segmenter = null, SignalExtractor? signals = null,
+        IPhoenixClient? phoenix = null)
     {
         _options = options;
         _segmenter = segmenter ?? new TaskSegmenter();
         _signals = signals ?? new SignalExtractor();
+        _phoenix = phoenix;
     }
 
     public IngestResult Ingest(IEnumerable<TranscriptSession> sessions)
@@ -71,13 +76,24 @@ public sealed class TranscriptIngestor
 
                     // Les signaux voyagent avec la tâche : c'est ce qui permettra
                     // au bilan de citer un chiffre ET la phrase qui l'explique.
-                    foreach (var signal in _signals.ForTask(task, session))
+                    var taskSignals = _signals.ForTask(task, session);
+                    foreach (var signal in taskSignals)
                     {
                         // Un signal indéterminé n'est pas un zéro : on ne l'écrit
                         // pas du tout, plutôt que de polluer les moyennes de Phoenix.
                         if (!double.IsNaN(signal.Value)) taskSpan.SetTag($"signal.{signal.Key}", signal.Value);
                         taskSpan.SetTag($"signal.{signal.Key}.why", signal.Evidence);
                         result.Signals++;
+                    }
+
+                    // Les attributs signal.{clé} ci-dessus restent l'unique source
+                    // dans le span lui-même ; l'annotation s'ajoute par-dessus, sur
+                    // le même span de tâche, pour que Phoenix puisse trier/agréger.
+                    if (_phoenix is not null && _options.PushAnnotations)
+                    {
+                        var annotations = SignalAnnotations.FromSignals(
+                            taskSignals, taskSpan.SpanId.ToHexString(), _options);
+                        _phoenix.AnnotateAsync(annotations, CancellationToken.None).GetAwaiter().GetResult();
                     }
                 }
 
