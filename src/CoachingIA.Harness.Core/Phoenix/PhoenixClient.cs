@@ -66,6 +66,51 @@ public interface IPhoenixClient
 }
 
 /// <summary>
+/// Un exemple tel que Phoenix le rend (GET /v1/datasets/{id}/examples) : son
+/// identifiant réel (un GlobalID encodé en base64, à reporter tel quel dans
+/// <see cref="ExperimentRun.ExampleId"/>), ses métadonnées telles que publiées
+/// à l'upload, et sa date de dernière mise à jour.
+/// </summary>
+public sealed record ExemplePhoenix(
+    string Id,
+    IReadOnlyDictionary<string, string> Metadata,
+    DateTimeOffset? MisAJour);
+
+/// <summary>
+/// Le verdict d'un évaluateur sur un run d'experiment, tel que
+/// POST /v1/experiment_evaluations l'attend. Un run n'est pas un span : cette
+/// route est distincte de /v1/span_annotations, qu'un run ne peut pas viser
+/// (spec §5.0).
+/// </summary>
+public sealed record RunEvaluation(
+    string ExperimentRunId,
+    string Name,
+    string AnnotatorKind,          // AnnotatorKinds.Code / .Llm
+    AnnotationResult Result,
+    DateTimeOffset Debut,
+    DateTimeOffset Fin,
+    IReadOnlyDictionary<string, string>? Metadata = null);
+
+/// <summary>
+/// Les trois routes Phoenix qui manquaient à <see cref="IPhoenixClient"/> pour
+/// publier une campagne d'évaluation : retrouver un dataset par nom, lister
+/// ses exemples pour connaître leurs identifiants réels, et évaluer un run.
+///
+/// Interface séparée, volontairement : <c>IPhoenixClient</c> porte le chemin
+/// chaud (qui ne lève jamais) et a déjà des implémentations factices dans
+/// d'autres suites de tests du chantier — lui ajouter un membre les casserait
+/// à la fusion. La publication d'une campagne, elle, est un traitement hors
+/// ligne dont l'appelant rattrape les échecs ; ces trois méthodes LÈVENT sur
+/// échec HTTP, comme les méthodes datasets/experiments existantes.
+/// </summary>
+public interface IPhoenixExperiences
+{
+    Task<string?> TrouverDatasetAsync(string nom, CancellationToken ct);
+    Task<IReadOnlyList<ExemplePhoenix>> ListerExemplesAsync(string datasetId, CancellationToken ct);
+    Task EvaluerRunAsync(RunEvaluation evaluation, CancellationToken ct);
+}
+
+/// <summary>
 /// Client REST de Phoenix. `HttpClient` et `System.Text.Json`, rien d'autre —
 /// `CoachingIA.Harness.Core` n'a aucune dépendance NuGet externe.
 ///
@@ -85,7 +130,7 @@ public interface IPhoenixClient
 /// synchrone : le coût (attendre que Phoenix ait traité l'annotation) ne
 /// remonte à personne, puisque tout part de la file en arrière-plan.
 /// </summary>
-public sealed class PhoenixClient : IPhoenixClient, IDisposable
+public sealed class PhoenixClient : IPhoenixClient, IPhoenixExperiences, IDisposable
 {
     private const string AnnotatePath = "/v1/span_annotations?sync=true";
 
@@ -176,6 +221,92 @@ public sealed class PhoenixClient : IPhoenixClient, IDisposable
             }, ct).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         return await ReadJsonField(response, "id", ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// GET /v1/datasets?name=… — le filtre par nom existe côté serveur, ce qui
+    /// dispense de parcourir une liste paginée. Le nom reste vérifié côté
+    /// client (égalité exacte sur le champ <c>name</c> de chaque résultat), au
+    /// cas où le filtre serveur deviendrait un jour une simple recherche.
+    /// Rend <c>null</c> si aucun dataset ne porte ce nom.
+    /// </summary>
+    public async Task<string?> TrouverDatasetAsync(string nom, CancellationToken ct)
+    {
+        using var response = await _http.GetAsync(
+            BuildUri("/v1/datasets?name=" + Uri.EscapeDataString(nom)), ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct).ConfigureAwait(false);
+        foreach (var item in doc.RootElement.GetProperty("data").EnumerateArray())
+            if (item.TryGetProperty("name", out var n) && n.ValueKind == JsonValueKind.String
+                && string.Equals(n.GetString(), nom, StringComparison.Ordinal))
+                return item.GetProperty("id").GetString();
+
+        return null;
+    }
+
+    /// <summary>
+    /// GET /v1/datasets/{id}/examples. Chaque exemple porte son identifiant
+    /// Phoenix réel (celui qu'exige <see cref="ExperimentRun.ExampleId"/>), ses
+    /// métadonnées — une valeur JSON qui n'est pas une chaîne est rendue par son
+    /// texte JSON brut, pour ne rien perdre de son contenu — et sa date de
+    /// dernière mise à jour si la réponse la porte.
+    /// </summary>
+    public async Task<IReadOnlyList<ExemplePhoenix>> ListerExemplesAsync(string datasetId, CancellationToken ct)
+    {
+        using var response = await _http.GetAsync(
+            BuildUri($"/v1/datasets/{Uri.EscapeDataString(datasetId)}/examples"), ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct).ConfigureAwait(false);
+
+        var exemples = new List<ExemplePhoenix>();
+        if (doc.RootElement.GetProperty("data").TryGetProperty("examples", out var liste)
+            && liste.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var e in liste.EnumerateArray())
+            {
+                var id = e.GetProperty("id").GetString()
+                    ?? throw new InvalidOperationException("Réponse Phoenix avec un exemple sans identifiant.");
+
+                var metadata = new Dictionary<string, string>(StringComparer.Ordinal);
+                if (e.TryGetProperty("metadata", out var m) && m.ValueKind == JsonValueKind.Object)
+                    foreach (var p in m.EnumerateObject())
+                        metadata[p.Name] = p.Value.ValueKind == JsonValueKind.String
+                            ? p.Value.GetString() ?? "" : p.Value.GetRawText();
+
+                DateTimeOffset? misAJour = e.TryGetProperty("updated_at", out var u) && u.ValueKind == JsonValueKind.String
+                    && DateTimeOffset.TryParse(u.GetString(), System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.RoundtripKind, out var dt)
+                    ? dt : null;
+
+                exemples.Add(new ExemplePhoenix(id, metadata, misAJour));
+            }
+        }
+
+        return exemples;
+    }
+
+    /// <summary>
+    /// POST /v1/experiment_evaluations. Un run d'experiment n'est pas un span
+    /// (spec §5.0) : cette route, distincte de /v1/span_annotations, est la
+    /// seule à accepter un <c>experiment_run_id</c>.
+    /// </summary>
+    public async Task EvaluerRunAsync(RunEvaluation evaluation, CancellationToken ct)
+    {
+        using var response = await PostJsonAsync("/v1/experiment_evaluations", new
+        {
+            experiment_run_id = evaluation.ExperimentRunId,
+            name = evaluation.Name,
+            annotator_kind = evaluation.AnnotatorKind,
+            start_time = evaluation.Debut,
+            end_time = evaluation.Fin,
+            result = evaluation.Result,
+            metadata = evaluation.Metadata,
+        }, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task FlushAsync(CancellationToken ct)
