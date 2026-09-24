@@ -52,9 +52,14 @@ public static class SessionBuilder
         var pending = new Dictionary<string, ToolCall>(StringComparer.Ordinal);
 
         // Le tour courant se suit séparément pour la conversation principale et
-        // pour les sous-agents : leurs lignes s'entrelacent dans le fichier, et
-        // les fondre ensemble attribuerait le travail du sous-agent au tour
-        // humain — ce qui effacerait justement le signal du palier 5.
+        // pour les sous-agents. Claude Code écrit chaque sous-agent dans son
+        // propre fichier (subagents/agent-*.jsonl), mais ses lignes portent le
+        // sessionId du parent, et TranscriptReader parcourt aussi ce dossier :
+        // elles rejoignent donc la même session que la conversation principale.
+        // Les versions plus anciennes les entrelaçaient dans le fichier principal
+        // lui-même ; le suivi par fil couvre les deux formats. Les fondre dans un
+        // seul fil attribuerait le travail du sous-agent au tour humain — ce qui
+        // effacerait justement le signal du palier 5.
         var current = new Dictionary<string, Turn>(StringComparer.Ordinal);
         static string Lane(string sessionId, bool sidechain) => sessionId + (sidechain ? "|agent" : "|main");
 
