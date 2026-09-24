@@ -172,6 +172,9 @@ CoachingIA.Harness.Tests.ReviewTests.Run(Check, FindLensDir());
 Console.WriteLine("\n────────────────────────  pipeline du bilan  ────────────────────────\n");
 CoachingIA.Harness.Tests.BilanPipelineTests.Run(Check, FindLensDir());
 
+Console.WriteLine("\n───────────────────────  activities du bilan  ───────────────────────\n");
+CoachingIA.Harness.Tests.BilanActivitiesTests.Run(Check, FindLensDir());
+
 Console.WriteLine("\n──────────────────────────  rétrospective  ──────────────────────────\n");
 CoachingIA.Harness.Tests.RetroTests.Run(Check, FindLensDir());
 
