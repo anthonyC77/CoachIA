@@ -35,6 +35,16 @@ public sealed class ResultatCampagne
     public List<LigneVerdict> Verdicts { get; } = [];
     public List<string> Avertissements { get; } = [];
 
+    /// <summary>
+    /// Ce que chaque épreuve a produit, par identifiant — exactement l'objet que
+    /// les évaluateurs ont jugé. Le garder évite à qui publie la campagne de
+    /// rejouer les producteurs : un rejeu ne rendrait la même sortie que tant
+    /// qu'ils restent déterministes, et recopierait leur gestion de panne.
+    /// Absent de <see cref="Campagne.Serialiser"/> : l'état approuvé ne porte
+    /// que des étiquettes.
+    /// </summary>
+    public Dictionary<string, Production> Productions { get; } = new(StringComparer.Ordinal);
+
     /// <summary>Les diagnostics chiffrés qui ne sont pas des scores : Pk, répartition des motifs…</summary>
     public Dictionary<string, string> Diagnostics { get; } = [];
 
@@ -101,6 +111,7 @@ public sealed class Campagne
                     Panne = ex.GetType().Name + " : " + ex.Message,
                 };
             }
+            resultat.Productions[epreuve.Id] = production;
 
             foreach (var evaluateur in _evaluateurs.Where(e => e.Famille == epreuve.Famille))
             {

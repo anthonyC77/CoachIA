@@ -74,7 +74,7 @@ public static class EvaluerCommand
         // et nulle part avant — tout ce qui précède tourne à l'identique avec
         // ou sans --phoenix.
         if (Array.IndexOf(args, "--phoenix") >= 0)
-            PublierVersPhoenix(args, lensDir, jeu, resultat, evaluateurs, phoenixClient, phoenixExperiences);
+            PublierVersPhoenix(args, jeu, resultat, evaluateurs, phoenixClient, phoenixExperiences);
 
         Console.WriteLine($"\n  Campagne d'évaluation — {jeu.Fichiers.Count} fichier(s) de cas, {jeu.Epreuves.Count} épreuve(s)\n");
         Console.Write(Porte.Rendre(resultat, rapport));
@@ -95,14 +95,14 @@ public static class EvaluerCommand
     }
 
     /// <summary>
-    /// Rejoue les producteurs pour connaître la <c>Production</c> de chaque
-    /// épreuve — <c>ResultatCampagne</c> ne la conserve pas, seulement les
-    /// verdicts — puis publie. Toutes les erreurs de publication restent
+    /// Publie la campagne telle qu'elle a été jouée : les productions viennent
+    /// de <c>ResultatCampagne</c>, qui garde celles que les évaluateurs ont
+    /// jugées. Rien n'est rejoué. Toutes les erreurs de publication restent
     /// confinées à <see cref="PublicationPhoenix.Publier"/> : cette méthode ne
     /// peut donc pas faire échouer la commande.
     /// </summary>
     private static void PublierVersPhoenix(
-        string[] args, string lensDir, JeuEpreuves jeu, ResultatCampagne resultat, List<IEvaluateur> evaluateurs,
+        string[] args, JeuEpreuves jeu, ResultatCampagne resultat, List<IEvaluateur> evaluateurs,
         IPhoenixClient? client, IPhoenixExperiences? experiences)
     {
         PhoenixClient? proprietaire = null;
@@ -118,22 +118,7 @@ public static class EvaluerCommand
 
         try
         {
-            var productions = new Dictionary<string, Production>(StringComparer.Ordinal);
-            var producteurs = CampagneStandard.Producteurs(lensDir).ToDictionary(p => p.Famille, StringComparer.Ordinal);
-            foreach (var epreuve in jeu.Epreuves)
-            {
-                if (!producteurs.TryGetValue(epreuve.Famille, out var producteur)) continue;
-                try { productions[epreuve.Id] = producteur.Produire(epreuve); }
-                catch (Exception ex) when (ex is not OutOfMemoryException)
-                {
-                    productions[epreuve.Id] = new Production("", producteur.Famille)
-                    {
-                        Panne = ex.GetType().Name + " : " + ex.Message,
-                    };
-                }
-            }
-
-            PublicationPhoenix.Publier(client, experiences, jeu, productions, resultat, evaluateurs);
+            PublicationPhoenix.Publier(client, experiences, jeu, resultat.Productions, resultat, evaluateurs);
         }
         finally
         {
