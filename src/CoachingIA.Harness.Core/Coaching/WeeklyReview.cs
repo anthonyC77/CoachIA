@@ -35,6 +35,14 @@ public sealed class WeeklyReview
     /// <summary>Le prompt de la semaine : ce qui a été écrit, et ce qu'il aurait fallu écrire.</summary>
     public PromptCritique? PromptOfTheWeek { get; set; }
     public PromptContext? PromptContext { get; set; }
+
+    /// <summary>
+    /// Le texte du prompt choisi par <see cref="WeeklyReviewBuilder"/>, posé dès
+    /// qu'un prompt est retenu — que la critique ait déjà tourné ou non. C'est
+    /// ce que reprend <see cref="BilanPipeline.AppliquerCritique"/> pour critiquer
+    /// séparément, une fois la revue sérialisée puis relue.
+    /// </summary>
+    public string? PromptACritiquer { get; set; }
     public Challenge? Challenge { get; set; }
     public Challenge? PreviousChallenge { get; set; }
     public string? PreviousVerdict { get; set; }
@@ -64,6 +72,16 @@ public sealed class WeeklyReviewBuilder
 
     /// <summary>Qui critique le prompt de la semaine. Null = section omise.</summary>
     public IPromptCritic? Critic { get; init; } = new HeuristicPromptCritic();
+
+    /// <summary>
+    /// Vrai : le prompt le plus coûteux est choisi et son contexte posé, mais
+    /// la critique n'est pas appelée — même si <see cref="Critic"/> est renseigné,
+    /// et même s'il est null. Elle attend un appel séparé, ailleurs, à
+    /// <see cref="BilanPipeline.AppliquerCritique"/>. Faux par défaut : le
+    /// comportement d'origine — critique immédiate si <see cref="Critic"/> est
+    /// non nul, section omise sinon — reste strictement inchangé.
+    /// </summary>
+    public bool DifferCritique { get; init; }
 
     public WeeklyReviewBuilder(SignalExtractor? extractor = null, TaskSegmenter? segmenter = null, UsageAnalyzer? usage = null)
     {
@@ -129,11 +147,18 @@ public sealed class WeeklyReviewBuilder
         // Le prompt de la semaine : celui qui a coûté le plus cher, réécrit.
         // C'est la partie la plus utile du bilan, et la plus difficile à
         // produire sans juge — d'où la critique par défaut hors ligne.
-        if (Critic is not null &&
+        //
+        // DifferCritique choisit le prompt et pose son contexte comme avant,
+        // mais laisse la critique elle-même à un appel séparé — y compris quand
+        // Critic est null, puisque c'est justement pour l'appeler plus tard
+        // qu'on la diffère.
+        if ((DifferCritique || Critic is not null) &&
             PromptPicker.Pick(tasks.Select(t => (t.Task, (IReadOnlyList<Signal>)t.Signals.Values.ToList()))) is { } pick)
         {
             review.PromptContext = pick.Context;
-            review.PromptOfTheWeek = Critic.Critique(pick.Task.Turns[0].Prompt, pick.Context);
+            review.PromptACritiquer = pick.Task.Turns[0].Prompt;
+            if (!DifferCritique && Critic is not null)
+                review.PromptOfTheWeek = Critic.Critique(pick.Task.Turns[0].Prompt, pick.Context);
         }
         return review;
     }
