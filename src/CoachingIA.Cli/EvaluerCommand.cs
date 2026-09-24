@@ -1,5 +1,6 @@
 using CoachingIA.Harness.Core;
 using CoachingIA.Harness.Core.Evaluation;
+using CoachingIA.Harness.Core.Phoenix;
 
 /// <summary>
 /// La commande <c>evaluer</c> : jouer la campagne hors du harnais de tests.
@@ -18,10 +19,26 @@ using CoachingIA.Harness.Core.Evaluation;
 /// <para>Codes de sortie, lus de la même façon par la CI et par un humain :
 /// 0 rien n'a bougé, 1 un écart à corriger ou à approuver, 2 la campagne n'a
 /// pas pu conclure.</para>
+///
+/// <para><c>--phoenix</c> publie en plus la campagne dans le projet Phoenix
+/// <c>coachingia-evals</c> (<c>--phoenix-url</c>, défaut
+/// <c>http://localhost:6006</c>). Sans ce drapeau, rien ne part et la sortie
+/// terminal ne change pas d'un octet — voir <see cref="PublicationPhoenix"/>,
+/// qui rattrape toute panne de Phoenix sans jamais changer le code de
+/// retour.</para>
 /// </summary>
 public static class EvaluerCommand
 {
-    public static int Run(string[] args, string lensDir)
+    /// <summary>
+    /// <paramref name="phoenixClient"/> et <paramref name="phoenixExperiences"/>
+    /// existent pour l'injection d'un client factice depuis les tests ; en
+    /// usage normal (CLI), ils restent <c>null</c> et un <c>PhoenixClient</c>
+    /// réel n'est construit que si <c>--phoenix</c> est présent dans
+    /// <paramref name="args"/>.
+    /// </summary>
+    public static int Run(
+        string[] args, string lensDir,
+        IPhoenixClient? phoenixClient = null, IPhoenixExperiences? phoenixExperiences = null)
     {
         var racine = Valeur(args, "--racine") ?? Path.GetDirectoryName(lensDir.TrimEnd(Path.DirectorySeparatorChar))
                      ?? Environment.CurrentDirectory;
@@ -53,6 +70,12 @@ public static class EvaluerCommand
 
         var rapport = Porte.Juger(resultat, approuve, evaluateurs);
 
+        // Rien ne change sans le drapeau : la publication Phoenix se décide ici,
+        // et nulle part avant — tout ce qui précède tourne à l'identique avec
+        // ou sans --phoenix.
+        if (Array.IndexOf(args, "--phoenix") >= 0)
+            PublierVersPhoenix(args, lensDir, jeu, resultat, evaluateurs, phoenixClient, phoenixExperiences);
+
         Console.WriteLine($"\n  Campagne d'évaluation — {jeu.Fichiers.Count} fichier(s) de cas, {jeu.Epreuves.Count} épreuve(s)\n");
         Console.Write(Porte.Rendre(resultat, rapport));
 
@@ -69,6 +92,53 @@ public static class EvaluerCommand
         });
 
         return rapport.Code;
+    }
+
+    /// <summary>
+    /// Rejoue les producteurs pour connaître la <c>Production</c> de chaque
+    /// épreuve — <c>ResultatCampagne</c> ne la conserve pas, seulement les
+    /// verdicts — puis publie. Toutes les erreurs de publication restent
+    /// confinées à <see cref="PublicationPhoenix.Publier"/> : cette méthode ne
+    /// peut donc pas faire échouer la commande.
+    /// </summary>
+    private static void PublierVersPhoenix(
+        string[] args, string lensDir, JeuEpreuves jeu, ResultatCampagne resultat, List<IEvaluateur> evaluateurs,
+        IPhoenixClient? client, IPhoenixExperiences? experiences)
+    {
+        PhoenixClient? proprietaire = null;
+        if (client is null || experiences is null)
+        {
+            proprietaire = new PhoenixClient(new HttpClient(), new HarnessOptions
+            {
+                PhoenixBaseUrl = Valeur(args, "--phoenix-url") ?? "http://localhost:6006",
+            });
+            client ??= proprietaire;
+            experiences ??= proprietaire;
+        }
+
+        try
+        {
+            var productions = new Dictionary<string, Production>(StringComparer.Ordinal);
+            var producteurs = CampagneStandard.Producteurs(lensDir).ToDictionary(p => p.Famille, StringComparer.Ordinal);
+            foreach (var epreuve in jeu.Epreuves)
+            {
+                if (!producteurs.TryGetValue(epreuve.Famille, out var producteur)) continue;
+                try { productions[epreuve.Id] = producteur.Produire(epreuve); }
+                catch (Exception ex) when (ex is not OutOfMemoryException)
+                {
+                    productions[epreuve.Id] = new Production("", producteur.Famille)
+                    {
+                        Panne = ex.GetType().Name + " : " + ex.Message,
+                    };
+                }
+            }
+
+            PublicationPhoenix.Publier(client, experiences, jeu, productions, resultat, evaluateurs);
+        }
+        finally
+        {
+            proprietaire?.Dispose();
+        }
     }
 
     /// <summary>
