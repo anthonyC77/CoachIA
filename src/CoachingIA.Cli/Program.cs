@@ -95,7 +95,11 @@ switch (command)
               defi      le défi de la semaine, choisi sur vos propres signaux
               moment    ce que le coach dirait après votre dernière session
               bilan     le bilan de la semaine, en page web : réussite, prompt
-                        réécrit, observations, conseils, défi
+                        réécrit, observations, conseils, défi. --durable le fait
+                        tourner en workflow Temporal et attend son résultat ;
+                        --planifier crée ou met à jour le Schedule du lundi 8 h
+                        (les deux exigent un serveur Temporal, voir plus bas ;
+                        sans eux, bilan n'utilise jamais Temporal)
               retro     la rétrospective des mois écoulés : trajectoire de chaque
                         signal, bascules datées, mois par mois
               exporter-run  une session au format du journal de runs, lisible
@@ -122,6 +126,10 @@ switch (command)
                       --week <2026-W34>  --juge (réécriture par claude -p)
                       --depuis <2026-03-01>  --jusqua <2026-08-31>  --mois <n>
                       --phoenix  --phoenix-url <url>  (coachingia evaluer)
+                      --durable  --planifier  --temporal <hôte:port>  (défaut
+                              127.0.0.1:7233)  --attente <minutes> (défaut 10,
+                              avec --durable)  --fuseau <IANA>  (défaut
+                              Europe/Paris, avec --planifier) — coachingia bilan
             """);
         return 0;
 }
@@ -467,6 +475,13 @@ static string Trim(string s, int max) => s.Length <= max ? s : s[..(max - 1)] + 
 
 int Bilan()
 {
+    // --durable et --planifier délèguent à Temporal avant même de charger les
+    // transcripts : voir le commentaire de tête, Temporal reste confiné à ce
+    // seul fichier, chargé seulement quand l'une de ces options est donnée.
+    if (Array.IndexOf(args, "--durable") >= 0 || Array.IndexOf(args, "--planifier") >= 0)
+        return BilanDurableCommand.Run(args, root, outPath, limit, weekArg, lensDir, lensId, raceId,
+            Array.IndexOf(args, "--juge") >= 0);
+
     var (sessions, _) = Load();
     var writer = Writer();
 

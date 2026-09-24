@@ -153,6 +153,35 @@ pas avant.
 
 Pour en faire un rituel, planifiez `scripts/bilan-hebdo.ps1` le lundi matin.
 
+#### Le bilan durable, avec Temporal
+
+`bilan` **sans option n'utilise jamais Temporal** : c'est le même code qu'avant,
+sans dépendance de fonctionnement supplémentaire. Deux options y ajoutent une
+exécution reprenable après panne, décrite dans `docs/decision-temporal.md` :
+
+- **`bilan --durable`** démarre le bilan comme un workflow Temporal (nommé
+  `BilanHebdo`) et attend son résultat, avec les mêmes messages et le même
+  format de sortie qu'un bilan ordinaire. `--temporal <hôte:port>` choisit le
+  serveur (défaut `127.0.0.1:7233`) et `--attente <minutes>` borne l'attente
+  du résultat (défaut 10) : dépassée, le CLI le dit et rend la main — le
+  workflow, lui, continue côté serveur.
+- **`bilan --planifier`** crée ou met à jour le Schedule Temporal qui lance ce
+  même workflow tous les lundis à 8 h (`--fuseau <IANA>`, défaut
+  `Europe/Paris`). L'opération est idempotente : relancer la commande affiche
+  « créée » la première fois, « mise à jour » ensuite. Elle refuse `--week` —
+  un Schedule vise toujours la dernière semaine close au moment où il se
+  déclenche, jamais une semaine figée à la création.
+
+Les deux exigent un serveur Temporal local et son Worker :
+
+```powershell
+scripts/temporal-local.ps1
+dotnet run --project src/CoachingIA.Orchestration
+```
+
+Sans serveur joignable, `--durable` et `--planifier` le disent et rendent le
+code 2 plutôt que d'échouer en silence.
+
 ### La rétrospective
 
 `bilan` répond à « qu'est-ce que je corrige lundi ? ». `retro` répond à l'autre
@@ -602,6 +631,10 @@ skills/                        le registre de voix des lentilles
     TranscriptProbe.cs         la sonde de format, anonyme
 src/CoachingIA.Cli/            probe / analyze / segment / usage / team / lens / defi / moment / bilan / retro / web / corpus / evaluer
     WebConsole.cs              la console locale : liste blanche, jeton, 127.0.0.1
+    BilanDurableCommand.cs     bilan --durable et --planifier : le seul fichier du CLI qui dépend de Temporalio
+src/CoachingIA.Orchestration/  le Worker Temporal du bilan durable
+    BilanContrats.cs           entrée/sortie du workflow BilanHebdo, noms partagés (file, id de planification)
+    PlanificationBilan.cs      le Schedule du lundi 8 h : construction pure, testable sans serveur
 installeur/                    install.ps1, package.ps1, Installer-CoachingIA.bat
 src/CoachingIA.Mcp/            le serveur MCP du corpus (coachingia-mcp)
 src/CoachingIA.Harness/        l'hôte web, les hooks, /ingest
