@@ -25,7 +25,7 @@ pas encore** : pas de juge LLM, pas de persistance au-delà des fichiers. Les pa
 
 ## Architecture
 
-Trois projets. `CoachingIA.Harness` désigne l'hôte web, pas un « harnais » au sens générique.
+Quatre projets. `CoachingIA.Harness` désigne l'hôte web, pas un « harnais » au sens générique.
 
 - **`Harness.Core`** — toute la logique, **zéro dépendance NuGet externe** (seule la référence de framework `Microsoft.AspNetCore.App`) : le cœur doit compiler et se tester hors ligne.
   - `Transcripts/` : `TranscriptReader` (JSONL tolérant, une ligne illisible se compte et n'est jamais fatale) → `SessionBuilder` → `TaskSegmenter` → `SignalExtractor`. `TranscriptIngestor` rejoue en spans **aux horodatages d'origine**. Le segmenteur est une heuristique que le README appelle « un pari » : il journalise ses décisions et se retouche.
@@ -34,6 +34,7 @@ Trois projets. `CoachingIA.Harness` désigne l'hôte web, pas un « harnais » a
   - `ClaudeCli.cs` : le seul endroit qui lance `claude -p`. Les deux tubes se lisent **en parallèle** de l'attente — les lire après coup bloquait l'enfant dès qu'il dépassait la taille d'un tube. Tout ce qui s'en sert reçoit un `IClaudeCli`, ce qui rend la chose éprouvable hors ligne.
 - **`Harness`** — la voie temps réel : `POST /hooks/{eventName}`, `POST /ingest` (le rejeu, pour que les deux voies convergent sur le même modèle de span), `/health`, `/status`. `Routes.Map` est la table explicite segment d'URL → nom canonique ; certains noms divergent exprès (`post-tool-fail` → `PostToolUseFailure`), ne pas la dériver. **Un hook répond vite et répond 200** : il bloque le tour de l'utilisateur, une panne côté coaching ne doit jamais faire tomber sa session.
 - **`Cli`** — l'exécutable `coachingia`, un script à une fonction locale `int Xxx()` par sous-commande. `WebConsole.cs` sert la console locale sous des garanties **à préserver, pas seulement à faire marcher** : liaison `127.0.0.1` seule, commandes et options en liste blanche, arguments passés en tableau (aucune chaîne shell à injecter), chemin servi réduit à son nom de fichier puis rejoint sous le dossier de sortie, jeton de session vérifié à chaque appel.
+- **`Orchestration`** — le Worker Temporal du bilan durable. Seul projet, avec le `Cli` pour `--durable`, à dépendre de `Temporalio`/`Temporalio.Extensions.Hosting` ; `Harness.Core` reste sans aucun paquet NuGet. Voir `docs/decision-temporal.md` pour la règle de vie privée de l'historique Temporal (jamais de texte de prompt ni de contenu de transcript dans les payloads d'activity/workflow) et pour le déterminisme attendu des workflows.
 
 Hors code : `lenses/*.json`, `evals/` (le jeu d'épreuves et l'état approuvé), `skills/coach-starcraft2.md` (registre d'écriture des scènes). `_a_supprimer/` est une zone d'attente, pas de la source vivante.
 

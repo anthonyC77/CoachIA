@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>coachingia-orchestration</AssemblyName>
+    <RootNamespace>CoachingIA.Orchestration</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../CoachingIA.Harness.Core/CoachingIA.Harness.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Temporalio" Version="1.19.0" />
+    <PackageReference Include="Temporalio.Extensions.Hosting" Version="1.19.0" />
+  </ItemGroup>
+</Project>
