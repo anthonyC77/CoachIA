@@ -1,29 +1,58 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Temporalio.Client;
+using Temporalio.Extensions.Hosting;
+using CoachingIA.Harness.Core;
 using CoachingIA.Orchestration;
 
-// Point d'entrée provisoire du Worker Temporal du bilan durable. Pour
-// l'instant, seule la vérification de connexion est câblée ; le Worker
-// hébergé (AddHostedTemporalWorker), le workflow BilanHebdo et ses
-// activities arrivent dans une tâche ultérieure et remplaceront ce
-// comportement par défaut.
+// Point d'entrée du Worker Temporal du bilan durable. --verifier ne fait que
+// sonder la connexion, sans rien héberger ; sans argument, le Worker démarre
+// pour de bon, avec les quatre activities de BilanActivities enregistrées.
+// Le workflow BilanHebdo et sa planification arrivent dans une tâche
+// ultérieure.
 
 const int DelaiVerificationSecondes = 10;
 
 if (args.Contains("--verifier"))
     return await VerifierAsync(args);
 
-AfficherAide();
-return 1;
+if (args.Contains("--aide") || args.Contains("--help"))
+{
+    AfficherAide();
+    return 0;
+}
+
+await HebergerAsync(args);
+return 0;
 
 static void AfficherAide()
 {
-    Console.WriteLine("coachingia-orchestration — Worker Temporal du bilan durable (pas encore hébergé).");
+    Console.WriteLine("coachingia-orchestration — Worker Temporal du bilan durable.");
     Console.WriteLine();
     Console.WriteLine("Usage :");
+    Console.WriteLine("  coachingia-orchestration [--temporal <hôte:port>] [--espace <nom>]");
     Console.WriteLine("  coachingia-orchestration --verifier [--temporal <hôte:port>] [--espace <nom>]");
     Console.WriteLine();
     Console.WriteLine($"  --temporal   adresse gRPC du serveur Temporal (défaut {BilanContrats.AdresseParDefaut})");
     Console.WriteLine($"  --espace     espace de noms Temporal (défaut {BilanContrats.EspaceParDefaut})");
+}
+
+// Héberge le Worker pour de bon : file coachingia-bilan, activities du bilan
+// enregistrées en singleton. IClaudeCli est lui aussi en singleton — un seul
+// binaire à sonder, partagé entre toutes les exécutions de Critiquer.
+static async Task HebergerAsync(string[] args)
+{
+    var adresse = Arg(args, "--temporal") ?? BilanContrats.AdresseParDefaut;
+    var espace = Arg(args, "--espace") ?? BilanContrats.EspaceParDefaut;
+
+    var builder = Host.CreateApplicationBuilder(args);
+    builder.Services.AddSingleton<IClaudeCli>(new ClaudeCli());
+    builder.Services
+        .AddHostedTemporalWorker(adresse, espace, BilanContrats.FileDeTaches)
+        .AddSingletonActivities<BilanActivities>();
+
+    using var host = builder.Build();
+    await host.RunAsync();
 }
 
 static async Task<int> VerifierAsync(string[] args)
