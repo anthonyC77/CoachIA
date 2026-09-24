@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../CoachingIA.Harness.Core/CoachingIA.Harness.Core.csproj" />
+    <ProjectReference Include="../CoachingIA.Orchestration/CoachingIA.Orchestration.csproj" />
   </ItemGroup>
 </Project>
