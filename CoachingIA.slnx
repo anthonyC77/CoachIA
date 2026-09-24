@@ -4,6 +4,7 @@
     <Project Path="src/CoachingIA.Harness.Core/CoachingIA.Harness.Core.csproj" />
     <Project Path="src/CoachingIA.Harness/CoachingIA.Harness.csproj" />
     <Project Path="src/CoachingIA.Mcp/CoachingIA.Mcp.csproj" />
+    <Project Path="src/CoachingIA.Orchestration/CoachingIA.Orchestration.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/CoachingIA.Harness.Tests/CoachingIA.Harness.Tests.csproj" />
