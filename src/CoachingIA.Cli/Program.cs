@@ -478,7 +478,7 @@ int Bilan()
     if (Array.IndexOf(args, "--juge") >= 0)
         critic = judged = new ClaudePromptCritic(new HeuristicPromptCritic());
 
-    var review = new WeeklyReviewBuilder { Critic = critic }.Build(sessions, weekArg, writer);
+    var review = BilanPipeline.Preparer(sessions, weekArg, writer, critic);
     if (judged?.LastError is { } err)
         Console.Error.WriteLine($"⚠ le juge n'a pas répondu ({err}) — critique hors ligne conservée.");
 
@@ -494,8 +494,7 @@ int Bilan()
     }
 
     var dossier = outPath ?? "bilans";
-    var page = ReviewArchive.Write(dossier, $"{review.Week}.html", HtmlReviewRenderer.Render(review, writer));
-    var texte = ReviewArchive.Write(dossier, $"{review.Week}.md", ReviewRenderer.ToMarkdown(review, writer));
+    var (page, texte) = BilanPipeline.Archiver(dossier, review, writer);
 
     Console.WriteLine($"\n  Bilan {review.Week}");
     Console.WriteLine($"    page   {Path.GetFullPath(page.Path)}   {Etat(page)}");
@@ -583,18 +582,9 @@ int Retro()
 LensWriter Writer()
 {
     var warnings = new List<string>();
-    var catalog = LensCatalog.Load(lensDir, warnings);
-    foreach (var w in warnings) Console.Error.WriteLine("⚠ lentille : " + w);
-    if (lensId is not null && !catalog.Knows(lensId))
-        Console.Error.WriteLine($"⚠ lentille « {lensId} » inconnue — retour au neutre.");
-
-    var lens = catalog.Resolve(lensId);
-    if (raceId is not null && lens.Race(raceId) is null)
-    {
-        var camps = lens.Races.Count == 0 ? "aucun" : string.Join(", ", lens.Races.Keys.OrderBy(x => x, StringComparer.Ordinal));
-        Console.Error.WriteLine($"⚠ camp « {raceId} » inconnu pour cette lentille (disponibles : {camps}) — vocabulaire générique.");
-    }
-    return new LensWriter(lens, raceId);
+    var writer = BilanPipeline.Ecrivain(lensDir, lensId, raceId, warnings);
+    foreach (var w in warnings) Console.Error.WriteLine("⚠ " + w);
+    return writer;
 }
 
 int Lentille()
