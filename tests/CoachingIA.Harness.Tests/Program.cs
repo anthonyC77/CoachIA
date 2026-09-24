@@ -175,6 +175,9 @@ CoachingIA.Harness.Tests.BilanPipelineTests.Run(Check, FindLensDir());
 Console.WriteLine("\n───────────────────────  activities du bilan  ───────────────────────\n");
 CoachingIA.Harness.Tests.BilanActivitiesTests.Run(Check, FindLensDir());
 
+Console.WriteLine("\n────────────────────────  workflow du bilan  ────────────────────────\n");
+CoachingIA.Harness.Tests.BilanWorkflowTests.Run(Check, FindLensDir());
+
 Console.WriteLine("\n──────────────────────────  rétrospective  ──────────────────────────\n");
 CoachingIA.Harness.Tests.RetroTests.Run(Check, FindLensDir());
 
@@ -217,6 +220,9 @@ static string FindRepoRoot()
     }
     return ".";
 }
+
+if (CoachingIA.Harness.Tests.BilanWorkflowTests.RienMesure is { } raison)
+    Console.WriteLine($"\n⚠ workflow du bilan : rien mesuré ({raison}) — ce n'est pas un vert");
 
 Console.WriteLine();
 if (failures.Count == 0) { Console.WriteLine("Tout est vert."); return 0; }

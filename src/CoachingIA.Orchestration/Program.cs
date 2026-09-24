@@ -7,9 +7,8 @@ using CoachingIA.Orchestration;
 
 // Point d'entrée du Worker Temporal du bilan durable. --verifier ne fait que
 // sonder la connexion, sans rien héberger ; sans argument, le Worker démarre
-// pour de bon, avec les quatre activities de BilanActivities enregistrées.
-// Le workflow BilanHebdo et sa planification arrivent dans une tâche
-// ultérieure.
+// pour de bon, avec le workflow BilanHebdo et les quatre activities de
+// BilanActivities enregistrés.
 
 const int DelaiVerificationSecondes = 10;
 
@@ -37,9 +36,10 @@ static void AfficherAide()
     Console.WriteLine($"  --espace     espace de noms Temporal (défaut {BilanContrats.EspaceParDefaut})");
 }
 
-// Héberge le Worker pour de bon : file coachingia-bilan, activities du bilan
-// enregistrées en singleton. IClaudeCli est lui aussi en singleton — un seul
-// binaire à sonder, partagé entre toutes les exécutions de Critiquer.
+// Héberge le Worker pour de bon : file coachingia-bilan, workflow BilanHebdo
+// et activities du bilan enregistrées en singleton. IClaudeCli est lui aussi
+// en singleton — un seul binaire à sonder, partagé entre toutes les
+// exécutions de Critiquer.
 static async Task HebergerAsync(string[] args)
 {
     var adresse = Arg(args, "--temporal") ?? BilanContrats.AdresseParDefaut;
@@ -49,6 +49,7 @@ static async Task HebergerAsync(string[] args)
     builder.Services.AddSingleton<IClaudeCli>(new ClaudeCli());
     builder.Services
         .AddHostedTemporalWorker(adresse, espace, BilanContrats.FileDeTaches)
+        .AddWorkflow<BilanHebdoWorkflow>()
         .AddSingletonActivities<BilanActivities>();
 
     using var host = builder.Build();
