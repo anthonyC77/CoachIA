@@ -191,7 +191,7 @@ Console.WriteLine("\n───────────────────�
 CoachingIA.Harness.Tests.PhoenixLlmTests.Run(Check);
 
 Console.WriteLine("\n─────────────────────────  évaluations phoenix  ─────────────────────────\n");
-CoachingIA.Harness.Tests.PhoenixEvalTests.Run(Check);
+CoachingIA.Harness.Tests.PhoenixEvalTests.Run(Check, FindRepoRoot());
 
 // En dernier, et ce n'est pas un hasard : la suite du corpus de maturité mute
 // la façade statique SignalSpecs, dont héritent toutes les suites qui suivent.

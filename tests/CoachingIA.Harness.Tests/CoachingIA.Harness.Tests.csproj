@@ -4,5 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/CoachingIA.Harness.Core/CoachingIA.Harness.Core.csproj" />
+    <ProjectReference Include="../../src/CoachingIA.Cli/CoachingIA.Cli.csproj" />
   </ItemGroup>
 </Project>

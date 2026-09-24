@@ -22,7 +22,7 @@ namespace CoachingIA.Harness.Tests;
 /// </summary>
 public static class PhoenixEvalTests
 {
-    public static void Run(Action<bool, string> check)
+    public static void Run(Action<bool, string> check, string racine)
     {
         Console.WriteLine("Premier passage : dataset inexistant");
         {
@@ -291,17 +291,6 @@ public static class PhoenixEvalTests
             check(fake.AnnotationsRecues.Count == 0, "la publication n'appelle jamais AnnotateAsync");
         }
 
-        // Les deux vérifications qui suivent portent sur « coachingia evaluer »
-        // (EvaluerCommand, projet CoachingIA.Cli). tests/CoachingIA.Harness.Tests
-        // ne référence QUE CoachingIA.Harness.Core — pas CoachingIA.Cli — et son
-        // .csproj n'est pas un fichier de cette tâche : EvaluerCommand n'est
-        // donc pas appelable en direct depuis cette suite. Ce qui suit vérifie
-        // au niveau où c'est possible ici : PublicationPhoenix elle-même, dont
-        // EvaluerCommand.PublierVersPhoenix n'est qu'un appelant mince (voir
-        // src/CoachingIA.Cli/EvaluerCommand.cs). Le comportement réel du CLI
-        // — sans --phoenix, avec --phoenix, et avec Phoenix injoignable — est
-        // rapporté séparément dans le compte rendu de la tâche, par un essai
-        // réel en sous-processus.
         Console.WriteLine("\nUn client factice qui échoue à CHAQUE appel : aucune exception, un seul avertissement");
         {
             var fake = new FakePhoenix
@@ -328,29 +317,40 @@ public static class PhoenixEvalTests
             check(!leve, "un client factice qui échoue à chaque appel ne fait remonter aucune exception hors de la publication");
         }
 
-        Console.WriteLine("\ncoachingia evaluer : le drapeau --phoenix, vérifié sur la source livrée");
+        Console.WriteLine("\ncoachingia evaluer : le drapeau --phoenix, joué en direct sur le vrai jeu d'épreuves");
         {
-            // Vérification structurelle, faute de pouvoir appeler EvaluerCommand
-            // depuis ce projet de tests (voir la note ci-dessus) : dans le
-            // fichier réellement livré, le seul appel à PublicationPhoenix.Publier
-            // est textuellement postérieur au test du drapeau --phoenix, donc à
-            // l'intérieur de sa garde — pas une preuve d'exécution, mais une
-            // preuve que le code livré n'a qu'un seul chemin vers Publier et
-            // qu'il passe par ce test.
-            var chemin = TrouverFichierRepo("src/CoachingIA.Cli/EvaluerCommand.cs");
-            if (chemin is null)
+            // La commande est jouée ici telle que le terminal la joue, sur le jeu
+            // versionné du dépôt, avec un client factice à la place de Phoenix.
+            var lensDir = Path.Combine(racine, "lenses");
+            string[] Args(params string[] extra) => ["evaluer", "--racine", racine, .. extra];
+
+            var sansDrapeau = new FakePhoenix();
+            var (codeSans, sortieSans) = Jouer(() => EvaluerCommand.Run(Args(), lensDir, sansDrapeau, sansDrapeau));
+            check(sansDrapeau.Journal.Count == 0 && sansDrapeau.AnnotationsRecues.Count == 0,
+                $"sans --phoenix, le client factice ne reçoit aucun appel (obtenu {sansDrapeau.Journal.Count})");
+
+            var avecDrapeau = new FakePhoenix();
+            var (codeAvec, sortieAvec) = Jouer(() => EvaluerCommand.Run(Args("--phoenix"), lensDir, avecDrapeau, avecDrapeau));
+            check(avecDrapeau.RunsCrees.Count > 0,
+                $"avec --phoenix, la campagne est bien publiée : un run par épreuve jouée (obtenu {avecDrapeau.RunsCrees.Count})");
+            check(sortieAvec == sortieSans,
+                "avec ou sans --phoenix, la sortie standard est identique caractère pour caractère");
+            check(codeAvec == codeSans,
+                $"avec ou sans --phoenix, le code de retour est le même (obtenu {codeAvec}, attendu {codeSans})");
+
+            var enPanne = new FakePhoenix
             {
-                Console.WriteLine("  ignorée : EvaluerCommand.cs introuvable depuis ce répertoire de sortie");
-            }
-            else
-            {
-                var source = File.ReadAllText(chemin);
-                var indexDrapeau = source.IndexOf("\"--phoenix\"", StringComparison.Ordinal);
-                var indexAppel = source.IndexOf("PublicationPhoenix.Publier(", StringComparison.Ordinal);
-                var appelsSuivants = source.LastIndexOf("PublicationPhoenix.Publier(", StringComparison.Ordinal);
-                check(indexDrapeau >= 0 && indexAppel >= 0 && indexDrapeau < indexAppel && indexAppel == appelsSuivants,
-                    "dans la source livrée, l'unique appel à PublicationPhoenix.Publier est textuellement postérieur au test du drapeau --phoenix");
-            }
+                TrouverDatasetLeve = true, ListerExemplesLeve = true, UpsertLeve = true,
+                CreateExperimentLeve = true, CreateRunLeve = true, EvaluerRunLeve = true,
+            };
+            int? codePanne = null;
+            Exception? fuite = null;
+            try { codePanne = Jouer(() => EvaluerCommand.Run(Args("--phoenix"), lensDir, enPanne, enPanne)).Code; }
+            catch (Exception ex) { fuite = ex; }
+            check(fuite is null,
+                $"un Phoenix qui échoue à chaque appel ne fait sortir aucune exception de la commande (obtenu {fuite?.GetType().Name ?? "aucune"})");
+            check(codePanne == codeSans,
+                $"un Phoenix en panne ne change pas le code de retour de la campagne (obtenu {codePanne?.ToString() ?? "aucun"}, attendu {codeSans})");
         }
     }
 
@@ -384,17 +384,15 @@ public static class PhoenixEvalTests
         return tampon.ToString();
     }
 
-    /// <summary>Remonte depuis le binaire de sortie jusqu'à trouver un chemin relatif donné à la racine du dépôt.</summary>
-    private static string? TrouverFichierRepo(string cheminRelatif)
+    /// <summary>Joue une commande en capturant ses deux sorties ; rend son code et sa sortie standard.</summary>
+    private static (int Code, string Sortie) Jouer(Func<int> commande)
     {
-        var dir = AppContext.BaseDirectory;
-        for (var i = 0; i < 8 && dir is not null; i++)
-        {
-            var candidat = Path.Combine(dir, cheminRelatif);
-            if (File.Exists(candidat)) return candidat;
-            dir = Path.GetDirectoryName(dir.TrimEnd(Path.DirectorySeparatorChar));
-        }
-        return null;
+        var (sortie, erreur) = (Console.Out, Console.Error);
+        var (tamponSortie, tamponErreur) = (new StringWriter(), new StringWriter());
+        Console.SetOut(tamponSortie);
+        Console.SetError(tamponErreur);
+        try { return (commande(), tamponSortie.ToString()); }
+        finally { Console.SetOut(sortie); Console.SetError(erreur); }
     }
 
     // ---- doublures --------------------------------------------------------
