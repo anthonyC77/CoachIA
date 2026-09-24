@@ -121,6 +121,128 @@ public static class PhoenixClientTests
                 $"après FlushAsync, les 3 lots mis en file ont tous été envoyés (obtenu {handler.Requests.Count})");
         }
 
+        Console.WriteLine("\nTrouverDatasetAsync");
+        {
+            var handler = new FakeHandler
+            {
+                Repondre = _ => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        {"data":[{"id":"RGF0YXNldDox","name":"coachingia-evals","description":"","metadata":{},
+                        "created_at":"2026-09-24T10:00:00+00:00","updated_at":"2026-09-24T10:00:00+00:00","example_count":3}],
+                        "next_cursor":null}
+                        """),
+                },
+            };
+            var client = new PhoenixClient(handler, new HarnessOptions());
+
+            var id = client.TrouverDatasetAsync("coachingia-evals", CancellationToken.None).GetAwaiter().GetResult();
+            check(id == "RGF0YXNldDox", $"TrouverDatasetAsync rend l'identifiant du dataset de même nom présent dans la réponse (obtenu {id})");
+            check(handler.Requests[^1].Method == HttpMethod.Get && handler.Requests[^1].Uri.AbsolutePath == "/v1/datasets",
+                $"la requête est un GET sur /v1/datasets (obtenu {handler.Requests[^1].Method} {handler.Requests[^1].Uri.AbsolutePath})");
+        }
+        {
+            var handler = new FakeHandler
+            {
+                Repondre = _ => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"data":[],"next_cursor":null}"""),
+                },
+            };
+            var client = new PhoenixClient(handler, new HarnessOptions());
+
+            var id = client.TrouverDatasetAsync("inexistant", CancellationToken.None).GetAwaiter().GetResult();
+            check(id is null, $"TrouverDatasetAsync rend null quand aucun dataset ne porte ce nom (obtenu {id ?? "null"})");
+        }
+
+        Console.WriteLine("\nListerExemplesAsync");
+        {
+            var handler = new FakeHandler
+            {
+                Repondre = _ => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        {"data":{"dataset_id":"RGF0YXNldDox","version_id":"v1","filtered_splits":[],"examples":[
+                          {"id":"RGF0YXNldEV4YW1wbGU6MQ==","node_id":"x","input":{},"output":{},
+                           "metadata":{"epreuve_id":"e1","empreinte":"aaa111","niveau":3},
+                           "updated_at":"2026-09-24T10:34:39+00:00","source":null}
+                        ]}}
+                        """),
+                },
+            };
+            var client = new PhoenixClient(handler, new HarnessOptions());
+
+            var exemples = client.ListerExemplesAsync("RGF0YXNldDox", CancellationToken.None).GetAwaiter().GetResult();
+            check(handler.Requests[^1].Method == HttpMethod.Get && handler.Requests[^1].Uri.AbsolutePath == "/v1/datasets/RGF0YXNldDox/examples",
+                $"la requête est un GET sur /v1/datasets/{{id}}/examples (obtenu {handler.Requests[^1].Uri.AbsolutePath})");
+            check(exemples.Count == 1, $"un exemple de la réponse factice donne un ExemplePhoenix (obtenu {exemples.Count})");
+            check(exemples[0].Id == "RGF0YXNldEV4YW1wbGU6MQ==", $"avec son identifiant Phoenix (obtenu {exemples[0].Id})");
+            check(exemples[0].Metadata["epreuve_id"] == "e1" && exemples[0].Metadata["empreinte"] == "aaa111",
+                "et ses métadonnées telles que publiées");
+            check(exemples[0].Metadata["niveau"] == "3",
+                $"une valeur de métadonnée non chaîne (JSON number) est rendue en texte JSON brut (obtenu « {exemples[0].Metadata["niveau"]} »)");
+            check(exemples[0].MisAJour == DateTimeOffset.Parse("2026-09-24T10:34:39+00:00"),
+                $"et sa date de mise à jour (obtenu {exemples[0].MisAJour})");
+        }
+
+        Console.WriteLine("\nEvaluerRunAsync");
+        {
+            var handler = new FakeHandler();
+            var client = new PhoenixClient(handler, new HarnessOptions());
+
+            var evaluation = new RunEvaluation(
+                "RXhwZXJpbWVudFJ1bjox", "conformite_reecriture", AnnotatorKinds.Code,
+                new AnnotationResult("conforme", 1.0, "tout va bien"),
+                DateTimeOffset.Parse("2026-09-24T10:00:00Z"), DateTimeOffset.Parse("2026-09-24T10:00:01Z"),
+                new Dictionary<string, string> { ["preuve"] = "citation exacte" });
+
+            client.EvaluerRunAsync(evaluation, CancellationToken.None).GetAwaiter().GetResult();
+
+            var derniere = handler.Requests[^1];
+            check(derniere.Method == HttpMethod.Post && derniere.Uri.AbsolutePath == "/v1/experiment_evaluations",
+                $"la requête est un POST sur /v1/experiment_evaluations (obtenu {derniere.Method} {derniere.Uri.AbsolutePath})");
+
+            var corps = JsonDocument.Parse(derniere.Body).RootElement;
+            check(corps.GetProperty("experiment_run_id").GetString() == "RXhwZXJpbWVudFJ1bjox", "le corps porte experiment_run_id");
+            check(corps.GetProperty("name").GetString() == "conformite_reecriture", "et name");
+            check(corps.GetProperty("annotator_kind").GetString() == AnnotatorKinds.Code, "et annotator_kind");
+            check(corps.TryGetProperty("start_time", out _) && corps.TryGetProperty("end_time", out _), "et start_time / end_time");
+            var result = corps.GetProperty("result");
+            check(result.GetProperty("label").GetString() == "conforme", "le result porte label");
+            check(result.GetProperty("explanation").GetString() == "tout va bien", "et explanation");
+            check(corps.GetProperty("metadata").GetProperty("preuve").GetString() == "citation exacte", "et metadata au niveau racine");
+        }
+        {
+            var handler = new FakeHandler();
+            var client = new PhoenixClient(handler, new HarnessOptions());
+
+            var evaluation = new RunEvaluation(
+                "run1", "indecis", AnnotatorKinds.Code,
+                new AnnotationResult("indeterminable", null, "hors bareme"),
+                DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+
+            client.EvaluerRunAsync(evaluation, CancellationToken.None).GetAwaiter().GetResult();
+
+            var result = JsonDocument.Parse(handler.Requests[^1].Body).RootElement.GetProperty("result");
+            check(!result.TryGetProperty("score", out _), "un Score null donne un result sans clé score");
+        }
+
+        Console.WriteLine("\nErreurs HTTP des méthodes IPhoenixExperiences");
+        {
+            var handler = new FakeHandler { Repondre = _ => new HttpResponseMessage(HttpStatusCode.InternalServerError) };
+            var client = new PhoenixClient(handler, new HarnessOptions());
+
+            check(Leve(() => client.TrouverDatasetAsync("x", CancellationToken.None).GetAwaiter().GetResult()),
+                "TrouverDatasetAsync lève quand le serveur répond 500");
+            check(Leve(() => client.ListerExemplesAsync("d1", CancellationToken.None).GetAwaiter().GetResult()),
+                "ListerExemplesAsync lève quand le serveur répond 500");
+            check(Leve(() => client.EvaluerRunAsync(
+                    new RunEvaluation("r1", "n", AnnotatorKinds.Code, new AnnotationResult(null, 1.0, "x"),
+                        DateTimeOffset.UtcNow, DateTimeOffset.UtcNow),
+                    CancellationToken.None).GetAwaiter().GetResult()),
+                "EvaluerRunAsync lève quand le serveur répond 500");
+        }
+
         Console.WriteLine("\nIntégration (Phoenix local, facultatif)");
         {
             if (!PortRepond("localhost", 6006, TimeSpan.FromMilliseconds(300)))
@@ -154,6 +276,12 @@ public static class PhoenixClientTests
 
     private static SpanAnnotation Annotation(string nom)
         => new(nom, "cccc000000000000", AnnotatorKinds.Code, new AnnotationResult(null, 1.0, "essai"));
+
+    private static bool Leve(Action action)
+    {
+        try { action(); return false; }
+        catch { return true; }
+    }
 
     private static bool PortRepond(string hote, int port, TimeSpan delai)
     {

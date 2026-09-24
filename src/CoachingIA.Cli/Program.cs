@@ -108,7 +108,10 @@ switch (command)
               evaluer   la campagne d'évaluation de l'outil lui-même, comparée à
                         l'état approuvé : 0 rien n'a bougé, 1 un écart, 2 rien
                         mesuré. --juge y ajoute l'avis de claude -p, qui informe
-                        sans jamais entrer dans l'état approuvé
+                        sans jamais entrer dans l'état approuvé. --phoenix publie
+                        dataset, experiment, runs et évaluations dans le projet
+                        Phoenix coachingia-evals (--phoenix-url, défaut
+                        http://localhost:6006) ; sans ce drapeau, rien ne part
 
             options : --root <dossier>  --out <fichier.json>  --limit <n>
                       --budget <jetons/semaine>  --weeks <n>  --csv <export.csv>
@@ -118,6 +121,7 @@ switch (command)
                       --variantes  (avec « lens » : relire toutes les scènes)
                       --week <2026-W34>  --juge (réécriture par claude -p)
                       --depuis <2026-03-01>  --jusqua <2026-08-31>  --mois <n>
+                      --phoenix  --phoenix-url <url>  (coachingia evaluer)
             """);
         return 0;
 }
