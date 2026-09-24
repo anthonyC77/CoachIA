@@ -22,7 +22,7 @@ builder.Services.AddSingleton(options);
 builder.Services.AddSingleton(sp => new SessionRegistry(options.SessionIdleTimeout));
 builder.Services.AddSingleton<SpanFactory>();
 builder.Services.AddSingleton<TaskSegmenter>();
-builder.Services.AddSingleton(new SignalExtractor { ContextWindow = options.ContextWindow });
+builder.Services.AddSingleton(new SignalExtractor { ContextWindow = options.ContextWindow, CaptureContent = options.CaptureContent });
 builder.Services.AddSingleton<TranscriptIngestor>();
 // Un seul HttpClient pour toute la durée de vie du processus : les envois
 // passent par la file interne du client, pas par une requête par appelant.
