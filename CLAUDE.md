@@ -17,7 +17,7 @@ pas encore** : pas de juge LLM, pas de persistance au-delà des fichiers. Les pa
 .NET SDK 10. Docker seulement pour la voie OpenTelemetry/Phoenix.
 
 - Générer : `dotnet build` — `TreatWarningsAsErrors` est actif pour toute la solution (`Directory.Build.props`), un avertissement fait échouer.
-- Vérifier : `dotnet run --project tests/CoachingIA.Harness.Tests` — code 1 si une vérification échoue, `FAIL <libellé>` par échec. La campagne d'évaluation est une section de ce même harnais (bannière `évaluation`).
+- Vérifier : `dotnet run --project tests/CoachingIA.Harness.Tests` — code 1 si une vérification échoue, `FAIL <libellé>` par échec, code 2 si rien n'échoue mais que la section « workflow du bilan » n'a rien mesuré (serveur de test Temporal indisponible, par exemple hors ligne au premier lancement) — jamais à lire comme un vert. La campagne d'évaluation est une section de ce même harnais (bannière `évaluation`).
 - Lancer : `dotnet run --project src/CoachingIA.Cli -- <commande>`. Sans argument, l'aide complète ; `probe --root <dir>` est le contrôle de fumée le plus rapide.
 - Évaluer seul : `dotnet run --project src/CoachingIA.Cli -- evaluer` — même composition que la porte du harnais, codes 0/1/2 (2 = rien mesuré, jamais à lire comme un vert). `--juge` y ajoute l'avis de `claude -p`, qui informe sans rien garder.
 - Bout en bout : Phoenix (`docker compose -f docker/docker-compose.yml up -d`), le harnais (`dotnet run --project src/CoachingIA.Harness`), puis `pwsh scripts/smoke-test.ps1`.

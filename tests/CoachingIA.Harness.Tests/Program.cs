@@ -221,11 +221,24 @@ static string FindRepoRoot()
     return ".";
 }
 
-if (CoachingIA.Harness.Tests.BilanWorkflowTests.RienMesure is { } raison)
-    Console.WriteLine($"\n⚠ workflow du bilan : rien mesuré ({raison}) — ce n'est pas un vert");
+var rienMesure = CoachingIA.Harness.Tests.BilanWorkflowTests.RienMesure;
+if (rienMesure is not null)
+    Console.WriteLine($"\n⚠ workflow du bilan : rien mesuré ({rienMesure}) — ce n'est pas un vert");
 
 Console.WriteLine();
-if (failures.Count == 0) { Console.WriteLine("Tout est vert."); return 0; }
-Console.WriteLine($"{failures.Count} verification(s) en echec :");
-foreach (var f in failures) Console.WriteLine("  - " + f);
-return 1;
+if (failures.Count > 0)
+{
+    Console.WriteLine($"{failures.Count} verification(s) en echec :");
+    foreach (var f in failures) Console.WriteLine("  - " + f);
+    return 1;
+}
+// Même règle que la porte d'évaluation : une section qui n'a rien mesuré rend 2,
+// jamais 0. Un script ou un agent qui ne lit que le code de sortie prendrait
+// sinon pour vérifiées la vie privée de l'historique et la reprise du workflow.
+if (rienMesure is not null)
+{
+    Console.WriteLine("Rien d'autre en échec, mais une section n'a rien mesuré : ce n'est pas un vert.");
+    return 2;
+}
+Console.WriteLine("Tout est vert.");
+return 0;
