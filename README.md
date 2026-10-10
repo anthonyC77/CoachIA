@@ -1,4 +1,18 @@
-﻿# CoachingIA — harnais d'observation
+# CoachIA — harnais d'observation
+
+**En bref.** CoachIA lit mes sessions Claude Code et mesure ce qui coûte : reprises, échecs d'outils, contexte saturé, mélange Haiku/Sonnet/Opus. Chaque lundi, il produit un bilan qui cite les vraies tâches de la semaine et réécrit le prompt qui a coûté le plus cher. Par défaut, tout reste sur le poste : les traces OpenTelemetry partent vers Arize Phoenix, en Docker local.
+
+C'est un entraîneur qui revoit les matchs plutôt que les moyennes de la saison : chaque conseil cite une tâche datée.
+
+- .NET 10 ; le noyau ne dépend d'aucun paquet NuGet et se compile hors ligne.
+- Écrit avec Claude Code (31 commits sur 34 co-écrits). Le projet s'appelle CoachingIA dans le code.
+- État : observation, bilans, rétrospective et campagne d'évaluation en place ; pas encore de juge LLM pour le coaching (voir « Ce qui n'est pas encore là »).
+
+<!-- Capture à ajouter ici : un bilan du lundi, ou l'arbre de traces d'une session dans Phoenix. -->
+
+---
+
+## Le détail
 
 Phases **00** (le tuyau), **01** (le parseur d'historique) et la brique temps
 réel de la phase **03**, d'après `docs/architecture-v0.3.html`.
